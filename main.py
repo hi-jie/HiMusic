@@ -1201,14 +1201,6 @@ def find_lrc_img_in_path(url, mode='lrcimg'):
 
     return img_file, lrc_file
 
-import test
-class Win2(QWidget):
-    def __init__(self):
-        QWidget.__init__(self)        
-        
-        self.ui = test.Ui_Form()
-        self.ui.setupUi(self)
-
 def main():
     global app, window, helper
 
@@ -1218,7 +1210,6 @@ def main():
     QApplication.setQuitOnLastWindowClosed(False)
     
     window = MainWindow()
-    # win2 = Win2()
 
     # 显示窗体并运行
     window.show()
