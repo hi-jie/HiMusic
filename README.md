@@ -1,6 +1,6 @@
 <h1 align="center">Hi音乐</h1>
 
-<p align="center">四大平台全音乐搜索、收听与下载的强大音乐播放器</p>
+<p align="center">两大平台全音乐搜索、收听与下载的简洁网络音乐播放器</p>
 
 <p align="center">
 <a href="./README.md">中文介绍</a> |
@@ -18,17 +18,13 @@
 
 ## 简介
 
-`HiMusic` 是基于 `Python` 开发的网络音乐播放器。
-
-## 适用场景
-
-个人云笔记、在线产品手册、团队内部知识库、在线电子教程等私有化部署场景。
+`Hi音乐` 是基于 `Python` 开发的简洁网络音乐播放器。
 
 ## 功能特性
 
 ### **基础功能**
 
-- 集成酷狗音乐、酷我音乐歌曲搜索与下载
+- 集成酷狗音乐、酷我音乐歌曲搜索与下载（未来将会支持更多的平台）
 
 - 支持歌词同步滚动，进度条控制音乐进度
 
@@ -44,7 +40,7 @@
 
 快捷键 `Win+R` 输入 `cmd` 回车打开命令行，运行下面命令安装依赖库：
 
-```
+```batch
 pip install -r requirements.txt
 ```
 
@@ -58,7 +54,21 @@ pip install -r requirements.txt
 python -m run.pyw
 ```
 
-或双击运行 `run.pyw` 文件。
+或者双击运行 `run.pyw` 文件。
+
+## 运行截图
+
+搜索歌曲
+
+![搜索歌曲](screenshots/search_results.png)
+
+歌词界面
+
+![歌词界面](screenshots/lrcs.png)
+
+播放列表
+
+![播放列表](screenshots/playlist.png)
 
 ## 交流
 
