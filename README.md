@@ -34,14 +34,16 @@
 
 ## 简明运行教程
 
-使用前请确保您已经在电脑上安装好了 Python 3.8+。
+使用前请确保您已经在电脑上安装好了 `Python 3.8+`。
 
 ### 1、安装依赖库
 
-快捷键 `Win+R` 输入 `cmd` 回车打开命令行，运行下面命令安装依赖库：
+快捷键 `Win+R` 输入 `cmd` 回车打开命令行，运行 `pip` 安装命令。
+
+连接 Python 官方 Pypi 安装很慢，因此推荐使用国内 **清华镜像** 安装：
 
 ```batch
-pip install -r requirements.txt
+pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 
 或者运行文件夹下 `requirements.bat` 批处理文件自动安装依赖库。
