@@ -1,0 +1,8 @@
+# python
+*.py[cod]
+
+# pyqt5
+QtApp/
+
+# my
+ui2py.bat
