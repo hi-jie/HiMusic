@@ -1,6 +1,5 @@
 # python
 __pycache__/
-*.py[cod]
 
 # pyqt5
 QtApp/
