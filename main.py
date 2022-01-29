@@ -16,8 +16,7 @@ from PyQt5.QtMultimedia import (QMediaPlayer, QMediaPlaylist, QMediaContent)
 from PyQt5.Qt import QPropertyAnimation
 import qtawesome as qta
 
-import ui_MainWindow
-from widgets import TrayIconWidget, VolumeControler
+from widgets import ui_MainWindow, TrayIconWidget, VolumeControler
 import mapi
 
 class MainWindow(QMainWindow):
