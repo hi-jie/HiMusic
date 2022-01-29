@@ -1,6 +1,6 @@
+# python
 __pycache__
-widgets/__pycache__
 
+# pyqt5
 QtApp
-
 ui2py.bat
