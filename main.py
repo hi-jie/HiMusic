@@ -3,7 +3,7 @@
 import sys
 from os import walk
 from re import search, fullmatch, I
-from json import load
+from json import load, dump
 
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QLabel, 
                              QListView, 
@@ -310,6 +310,7 @@ class MainWindow(QMainWindow):
         keyword = self.ui.input_entry.text()
         # 是否含有非空白符
         if search(r'\S', keyword) is None:
+            self.ui.results_view.clearContents()
             return
 
         # 切换引擎
@@ -388,6 +389,12 @@ class MainWindow(QMainWindow):
         self.ui.mvolume.setIcon(qta.icon(icon, color=self.toolbtn_color))
         self.ui.mvolume.setToolTip(f'音量 {value}')
         self.menu_widget.menu_volume.setIcon(qta.icon(icon, color=self.toolbtn_color))
+        
+    # 搜索结果添加到列表
+    @pyqtSlot(list)
+    def on_results_view_itemAdd(self, rows):
+        for row in rows:
+            self.add_media(self.ui.results_view.get_datas(row))
 
     # 播放列表选中歌曲变化
     @pyqtSlot()
@@ -480,7 +487,7 @@ class MainWindow(QMainWindow):
 
             datas = [song_name, artist, album, '', *['local:' + url] * 3]
 
-            self.add_media(datas, play=False)
+            self.add_media(datas)
 
 
 # ======== 自定义槽函数 ========
@@ -962,6 +969,9 @@ class MainWindow(QMainWindow):
         self.lrcs_animation.start() # 开始动画
 
         self.__lrc_index = index # 设置当前歌词序号
+        
+    def quit_app(self):
+        dump(helper.settings, open('settings.json', 'w'), indent=4)
         
 class SubThread(QThread):
     finished = pyqtSignal(list)

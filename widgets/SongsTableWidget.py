@@ -8,8 +8,8 @@ import qtawesome as qta
 
 class QSongsTableWidget(QTableWidget):
     itemPlay = pyqtSignal(int)
-    itemAdd = pyqtSignal(int)
-    itemCollect = pyqtSignal(int)
+    itemAdd = pyqtSignal(list)
+    itemCollect = pyqtSignal(list)
 
     __row = -1
 
@@ -103,7 +103,7 @@ class QSongsTableWidget(QTableWidget):
         QTableWidget.mouseReleaseEvent(self, event)
 
         # 是否右键单击
-        if (event.button() != Qt.RightButton) or (self.get_selected_row() == None):
+        if (event.button() != Qt.RightButton) or (self.get_selected_rows() == None):
             return
 
         # 弹出菜单
@@ -113,21 +113,21 @@ class QSongsTableWidget(QTableWidget):
 
     # 播放
     def act_item_play(self):
-        row = self.get_selected_row()
-        if row != None:
-            self.itemPlay.emit(row)
+        rows = self.get_selected_rows()
+        if rows:
+            self.itemPlay.emit(rows[0])
 
     # 添加到播放列表
     def act_item_add(self):
-        row = self.get_selected_row()
-        if row != None:
-            self.itemAdd.emit(row)
+        rows = self.get_selected_rows()
+        if rows:
+            self.itemAdd.emit(rows)
 
     # 喜欢
     def act_item_collect(self):
-        row = self.get_selected_row()
-        if row != None:
-            self.itemCollect.emit(row)
+        rows = self.get_selected_rows()
+        if rows:
+            self.itemCollect.emit(rows)
 
     def get_selected_rows(self):
         rows = []

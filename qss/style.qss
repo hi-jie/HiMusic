@@ -178,10 +178,6 @@ QMenu::separator {
     font-size: 14px;
     color: #666;
 }
-#lrcbox[lrcbox_index="1"] {
-    color: #2080f0; 
-    font-size: 18px;
-}
 
 /*歌词*/
 #lrc_view, #lrcbox_content {

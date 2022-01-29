@@ -1,3 +1,4 @@
 {
-	"default_engine": "kuwo"
+	"default_engine": "kuwo",
+	"quit_to_trayicon": true
 }

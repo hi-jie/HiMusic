@@ -223,7 +223,6 @@ class EngineKuwo(Base):
 class EngineKugou:
     name = '酷狗音乐'
     sign = 'kugou'
-
     '''
     search_url = 'https://complexsearch.kugou.com/v2/search/song'
     search_params = {
