@@ -514,4 +514,3 @@ class Ui_MainWindow(object):
         self.mplaylist.setText(_translate("MainWindow", "0"))
 from widgets.SongsEditBar import QSongsEditBar
 from widgets.SongsTableWidget import QSongsTableWidget
-import source_rc

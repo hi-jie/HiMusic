@@ -1,11 +1,10 @@
-# TODO 删除列表项问题
 
 import sys
 from os import walk
 from re import search, fullmatch, I
 from json import load, dump
 
-from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QLabel, 
+from PyQt5.QtWidgets import (QApplication, QMainWindow, QLabel, 
                              QListView, 
                              QGraphicsDropShadowEffect, QGraphicsBlurEffect,
                              QFileDialog, QMessageBox,
