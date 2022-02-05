@@ -3,6 +3,6 @@
         "default_engine": "kuwo"
     },
     "window": {
-        "close_trayicon": false
+        "close_trayicon": true
     }
 }
