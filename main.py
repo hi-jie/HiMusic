@@ -725,7 +725,6 @@ class MainWindow(QMainWindow):
     def add_media(self, datas, local=False, play=False) -> int:  
         # 爬取完音乐 URL       
         def music_url_finished(url):
-            print(url)
             if not url:
                 title = '错误'
                 warn = '获取歌曲出错，请重试。'
