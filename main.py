@@ -93,18 +93,18 @@ class MainWindow(QMainWindow):
         font = qta.font('fa', 14)
         self.ui.logo.setText('Hi 音乐')
         self.ui.logo.setFont(font)
-        self.ui.sidebar.item(0).setText(chr(0xf015) + '      首页     ')
-        self.ui.sidebar.item(1).setText(chr(0xf002) + '   搜索结果 ')
-        self.ui.sidebar.item(2).setText(chr(0xf0db) + '      歌词     ')
-        self.ui.sidebar.item(3).setText(chr(0xf08a) + '   我的收藏 ')
-        self.ui.sidebar.item(4).setText(chr(0xf03a) + '   播放列表 ')
-        self.ui.sidebar.item(5).setText(chr(0xf013) + '      设置     ')
+        # self.ui.sidebar.item(0).setText(chr(0xf015) + '      首页     ')
+        self.ui.sidebar.item(0).setText(chr(0xf002) + '   搜索结果 ')
+        self.ui.sidebar.item(1).setText(chr(0xf0db) + '      歌词     ')
+        # self.ui.sidebar.item(2).setText(chr(0xf08a) + '   我的收藏 ')
+        self.ui.sidebar.item(2).setText(chr(0xf03a) + '   播放列表 ')
+        self.ui.sidebar.item(3).setText(chr(0xf013) + '      设置     ')
         self.ui.sidebar.item(0).setFont(font)
         self.ui.sidebar.item(1).setFont(font)
         self.ui.sidebar.item(2).setFont(font)
         self.ui.sidebar.item(3).setFont(font)
-        self.ui.sidebar.item(4).setFont(font)
-        self.ui.sidebar.item(5).setFont(font)
+        # self.ui.sidebar.item(4).setFont(font)
+        # self.ui.sidebar.item(5).setFont(font)
       
         # 菜单栏选中首页
         self.ui.sidebar.setCurrentRow(0)
@@ -279,6 +279,12 @@ class MainWindow(QMainWindow):
 
 # ======== 自动关联的槽函数 ========
 
+    # 标题栏“更多”按钮
+    @pyqtSlot()
+    def on_settings_clicked(self):
+        self.ui.sidebar.setCurrentRow(3)
+        self.ui.stacked_tab.setCurrentIndex(3)
+
     # 关闭窗口
     @pyqtSlot()
     def on_close_win_clicked(self):
@@ -364,8 +370,8 @@ class MainWindow(QMainWindow):
     # “播放列表”按钮按下
     @pyqtSlot()
     def on_mplaylist_clicked(self):
-        self.ui.sidebar.setCurrentRow(4)
-        self.ui.stacked_tab.setCurrentIndex(4)
+        self.ui.sidebar.setCurrentRow(2)
+        self.ui.stacked_tab.setCurrentIndex(2)
 
     # 音量调整
     @pyqtSlot(int)
@@ -658,8 +664,8 @@ class MainWindow(QMainWindow):
 
     # 小图片按下
     def on_mimage_mouseReleaseEvent(self, event):
-        self.ui.sidebar.setCurrentRow(2)
-        self.ui.stacked_tab.setCurrentIndex(2)
+        self.ui.sidebar.setCurrentRow(1)
+        self.ui.stacked_tab.setCurrentIndex(1)
 
 # ======== 其他方法 ========
 
@@ -696,8 +702,8 @@ class MainWindow(QMainWindow):
         self.ui.results_view.clearContents()
         
         # 选中搜索结果列表
-        self.ui.sidebar.setCurrentRow(1)
-        self.ui.stacked_tab.setCurrentIndex(1)
+        self.ui.sidebar.setCurrentRow(0)
+        self.ui.stacked_tab.setCurrentIndex(0)
 
         # 搜索
         result_getter = SubThread(task=SubThread.get_result, keyword=keyword)
