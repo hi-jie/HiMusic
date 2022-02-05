@@ -78,7 +78,11 @@ python -m run.pyw
 
 ## 交流
 
-<p>微信：JIE（ZZJ_zzh）</p>
+微信：JIE（ZZJ_zzh）
+
+CSDN：[张大帅哥](https://blog.csdn.net/weixin_48448842?type=blog)
+
+博客园：[张大帅哥喔](https://www.cnblogs.com/hi-jie/)
 
 ## 依赖
 
