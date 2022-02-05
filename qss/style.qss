@@ -1,0 +1,305 @@
+* {
+    font-family: "Microsoft Yahei";
+    outline: 0px;
+}
+
+/*按钮*/
+#main_frame QPushButton {
+    /*color: #333;*/
+}
+
+/*下拉框*/
+QComboBox QAbstractItemView {
+    border: 1px solid #dddddd;
+}
+QComboBox QAbstractItemView::item {
+    color: #333333;
+    height: 30px;
+    /*padding-left: 8px;*/
+}
+QComboBox QAbstractItemView::item:selected {
+    color: black;
+    background-color: #d9d9d9;
+}
+
+/*歌曲列表*/
+QTableWidget {
+    background-color: white;
+    border: 1px solid #dddddd;
+}
+QTableWidget::section {
+    height: 40px;
+    border: none;
+    background-color: red;
+}
+QTableWidget::item {
+    padding: 2px;
+    border-bottom: 1px solid #dddddd;
+}
+QTableWidget::item:selected {
+    background-color: #e5e5e5;
+    color: black;
+}
+
+/*滑动条*/
+QSlider::groove {
+    border: none;
+    margin: 0;
+}
+QSlider::handle {
+    background-color: #1070e0;
+    border: none;
+    border-radius: 2px;
+}
+QSlider::handle:hover {
+    background-color: #3090f0;
+}
+
+/*菜单*/
+QMenu {
+    border: 1px solid #ccc;
+    padding: 5px 1px;
+    background-color: white;
+}
+QMenu::icon {
+    padding-left: 20px;
+}
+QMenu::item {
+    padding: 6px 20px;
+    color: black;
+}
+QMenu::item:selected {
+    color: black;
+    background-color: #dddddd;
+}
+QMenu::item:pressed {
+    background-color: #c9c9c9;
+}
+QMenu::separator {
+    padding: 5px 0;
+}
+
+#main_frame {
+    border-radius: 3px;
+    background-color: #f5f6f6;
+}
+
+/*菜单栏*/
+#sidebar, #logo {
+    background-color: #e8e8e8;
+}
+#sidebar {
+    border-bottom-left-radius: 3px;
+}
+#sidebar::item {
+    border: none;
+    border-radius: 3px;
+    padding: 5px;
+    margin: 4px 8px 0 8px;
+    color: #333;
+}
+#sidebar::item:hover:!selected {
+    background-color: #d1d1d1;
+}
+#sidebar::item:selected {
+    color: white;
+    background-color: #2080f0;
+}
+#logo {
+    color: #2080f0;
+    border-top-left-radius: 3px;
+    font-size: 20px;
+}
+
+/*标题栏*/
+#title_frame {
+    background-color: transparent;
+}
+#line, #line_2 {
+    color: #bbb;
+}
+#input_engine, #input_entry, #input_ok {
+    background-color: white;
+    border: 1px solid #ddd;
+}
+#input_engine {
+    color: #666;
+    border-right: none;
+    padding-left: 16px;
+    border-top-left-radius: 15px;
+    border-bottom-left-radius: 15px;
+}
+#input_engine:hover {
+    color: black;
+}
+#input_engine::checked {
+    background-color: #f1f1f1;
+}
+#input_engine::drop-down {
+    width: 0;
+}
+#input_entry {
+    border-right: none;
+    padding-left: 5px;
+
+}/*
+#input_entry:focus {
+    border: 1px solid #2080f0;
+    border-right: none;
+}*/
+#input_ok {
+    border-left: none;
+    border-top-right-radius: 15px;
+    border-bottom-right-radius: 15px;
+    margin-right: 3px;
+}
+
+/*播放进度*/
+#bar::sub-page {
+    background-color: #2080f0;
+}
+#bar::add-page {
+    background-color: #b9b9b9;
+}
+#bar::groove {
+    height: 2px;    
+}
+#bar::groove:hover {
+    height: 6px;
+}
+#bar::handle {    
+    width: 10px;
+    margin: -2px 0;
+}
+
+#stacked_tab {
+    padding-right: -5px;
+}
+
+/*歌词页*/
+#big_mname {
+    font-size: 20px;
+}
+#big_martist {
+    font-size: 14px;
+    color: #666;
+}
+
+/*歌词*/
+#lrc_view, #lrcbox_content {
+    background-color: transparent;
+    border: none;
+}
+#lrcbox {
+    font-size: 16px;
+    background-color: transparent;
+}
+
+/*播放列表页按钮*/
+.QSongsEditBar QPushButton {
+    border: 1px solid #2080f0;
+    border-radius: 13px;
+    background-color: #f7f8f8;
+}
+.QSongsEditBar QPushButton:hover {
+    background-color: #e5e5e5;
+}
+.QSongsEditBar QPushButton:pressed {
+    background-color: #ddd;
+}
+.QSongsEditBar QPushButton:!enabled {
+    color: #999;
+    border: 1px solid #ddd;
+    background-color: #f6f7f7;
+}
+
+/*设置页*/
+#settings_contents, #settings_area {
+    background-color: transparent;
+}
+#settings_contents>QLabel {
+    border: 1px solid #ddd;
+    border-width: 0 0 1px 0;
+    margin-top: 20px;
+    padding-bottom: 9px;
+    font-size: 20px;
+    font-weight: bold;
+}
+#settings_contents QWidget .QWidget {
+    border-bottom: 1px solid #ddd;
+}
+#settings_contents QWidget QLabel {
+    font-size: 14px;
+    padding: 5px 0; 
+}
+#settings_contents QComboBox {
+    border: 1px solid #aaa;
+    border-radius: 3px;
+    background-color: transparent;
+    padding: 4px 11px;
+}
+#settings_contents QComboBox:hover {
+    border: 1px solid #777;
+}
+#settings_contents QCheckBox {
+    height: 20px;
+    width: 0;
+    padding: 0;
+    border: 1px solid #aaa;
+    border-radius: 10px;
+}
+#settings_contents QCheckBox:hover {
+    border: 1px solid #777;
+}
+#settings_contents QCheckBox::indicator {
+    height: 10px;
+    width: 10px;
+    margin-left: 5px;
+    margin-right: 20px;
+    border: none;
+    border-radius: 5px;
+    background-color: #434343;
+}
+#settings_contents QCheckBox:checked {
+    border: none;
+    background-color: #2080f0 !important;
+}
+#settings_contents QCheckBox::indicator:checked {
+    margin-left: 25px;
+    margin-right: 0;
+    background-color: #f5f6f6;
+}
+
+/*系统托盘菜单*/
+#menu_widget QLabel {
+    font-size: 14px;
+}
+
+/*音量控制*/
+#volume_bar::handle:!enabled {
+    background-color: #aaa;
+}
+#volume_bar::add-page:!enabled {
+    background-color: #aaa;
+}
+#volume_bar::groove:!enabled {
+    background-color: transparent;
+}
+#volume_bar::groove {
+    width: 2px;
+}
+#volume_bar::handle { 
+    height: 8px;
+    margin: 0 -8px;
+}
+#volume_bar::sub-page {
+    background-color: #b9b9b9;
+}
+#volume_bar::add-page {
+    background-color: #2080f0;
+}
+#volume_lab {
+    color: #333;
+    font-size: 12px;
+    text-align: center;
+}
