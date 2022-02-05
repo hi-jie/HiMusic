@@ -4,7 +4,7 @@
 
 <p align="center">
 <a href="./README.md">中文介绍</a> |
-<a href="./README.en.md">English Description</a> 
+<a href="./README_en.md">English Description</a> 
 </p>
 
 
@@ -30,7 +30,7 @@
 
 - 多种播放模式选择
 
-完整更新记录详见：[CHANGES.md](./CHANGES.md)
+完整更新记录详见：[CHANGES.md](CHANGES.md)
 
 ## 简明运行教程
 
@@ -62,15 +62,19 @@ python -m run.pyw
 
 搜索歌曲
 
-![搜索歌曲](screenshots/search_results.png)
+![搜索歌曲](/screenshots/search_results.png)
 
 歌词界面
 
-![歌词界面](screenshots/lrcs.png)
+![歌词界面](/screenshots/lrcs.png)
 
 播放列表
 
-![播放列表](screenshots/playlist.png)
+![播放列表](/screenshots/playlist.png)
+
+设置界面
+
+![设置界面](/screenshots/settings.png)
 
 ## 交流
 
