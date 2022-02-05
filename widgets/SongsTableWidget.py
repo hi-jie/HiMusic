@@ -67,7 +67,7 @@ class QSongsTableWidget(QTableWidget):
 
         act_play = QAction(qta.icon('fa.play', color=color), '播放', self.rightclick_menu)
         act_add = QAction(qta.icon('fa.plus', color=color), '添加到播放列表', self.rightclick_menu)
-        act_collect = QAction(qta.icon('fa.heart-o', color=color), '喜欢', self.rightclick_menu)
+        act_collect = QAction(qta.icon('fa.heart-o', color=color), '收藏', self.rightclick_menu)
 
         act_play.triggered.connect(self.act_item_play)
         act_add.triggered.connect(self.act_item_add)
