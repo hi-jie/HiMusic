@@ -1,4 +1,3 @@
-
 import sys
 from os import walk
 from re import search, fullmatch, I
@@ -70,7 +69,7 @@ class MainWindow(QMainWindow):
         self.setup_system_tray() # 设置托盘图标
         self.setup_volume_menu() # 设置音量菜单
         self.setup_ui() # 组件初始化
-        self.setup_qss() # 设置 QSS
+        self.setup_settings() # 设置
         self.setup_engine() # 导入引擎
         self.setup_media() # 设置播放器
         self.setup_timer() # 设置定时器
@@ -84,6 +83,11 @@ class MainWindow(QMainWindow):
         
         # 设置搜索引擎列表模型
         self.ui.input_engine.setView(QListView())
+        self.ui.settings_default_engine.setView(QListView())
+        
+        # 搜索栏搜索按钮
+        self.ui.input_ok.setIcon(qta.icon('fa.search', color='#888'))
+        self.ui.input_ok.setCursor(Qt.PointingHandCursor)
         
         # 菜单栏图标
         font = qta.font('fa', 14)
@@ -126,12 +130,21 @@ class MainWindow(QMainWindow):
 
         # 初始化歌词
         self.insert_lrcbox([['无歌词', 0]])
+        
+        # 设置
+        self.ui.settings_close_trayicon.setCursor(Qt.PointingHandCursor)
 
-    # 设置 QSS
-    def setup_qss(self):
+    # 设置
+    def setup_settings(self):
+        settings = helper.settings
+        # QSS
         qss = helper.qss
-
         self.setStyleSheet(''.join(qss))
+        
+        # 关闭按钮最小化到托盘 
+        close_trayicon = settings['window'].get('close_trayicon', True)
+        self.ui.settings_close_trayicon.setChecked(close_trayicon)
+        QApplication.setQuitOnLastWindowClosed(not close_trayicon)
 
     # 组件槽连接
     def setup_slots(self): 
@@ -139,6 +152,10 @@ class MainWindow(QMainWindow):
         QMetaObject.connectSlotsByName(self.ui.centralwidget)
         
         self.ui.min_win.clicked.connect(self.showMinimized) # 窗口最小化
+        
+        self.ui.input_engine.currentIndexChanged[int].connect(self.search) # 搜索引擎切换
+        self.ui.input_entry.returnPressed.connect(self.search) # 搜索框按下回车
+        self.ui.input_ok.clicked.connect(self.search) # 搜索按钮按下
 
         self.ui.mpause.clicked.connect(self.change_player_state) # 界面点击播放/暂停
         self.menu_widget.menu_pause.clicked.connect(self.change_player_state) # 托盘点击播放/暂停
@@ -195,10 +212,12 @@ class MainWindow(QMainWindow):
     # 导入引擎
     def setup_engine(self):
         for index, engine in enumerate(helper.engines.values()):        
-            self.ui.input_engine.addItem(engine.name, engine)
+            self.ui.input_engine.addItem(engine.name, engine)       
+            self.ui.settings_default_engine.addItem(engine.name, engine.sign)
 
             if engine.sign == helper.default_engine.sign:
                 self.ui.input_engine.setCurrentIndex(index)
+                self.ui.settings_default_engine.setCurrentIndex(index)
 
     # 设置播放器
     def setup_media(self):
@@ -263,7 +282,18 @@ class MainWindow(QMainWindow):
     # 关闭窗口
     @pyqtSlot()
     def on_close_win_clicked(self):
-        #self.player.stop()
+        # 关闭时最小化到托盘
+        close_trayicon = self.ui.settings_close_trayicon.isChecked()
+        helper.settings['window']['close_trayicon'] = close_trayicon
+        QApplication.setQuitOnLastWindowClosed(not close_trayicon)
+        
+        # 默认搜索引擎
+        helper.settings['search']['default_engine'] = self.ui.settings_default_engine.currentData()
+        
+        # 保存
+        helper.save_settings()
+        
+        # 关闭窗口
         self.close()
     
     # 窗口最大化/还原窗口
@@ -290,43 +320,6 @@ class MainWindow(QMainWindow):
     @pyqtSlot(int)
     def on_sidebar_currentRowChanged(self, index):
         self.ui.stacked_tab.setCurrentIndex(index)
-
-    # 搜索框按下“Enter”键
-    @pyqtSlot()
-    def on_input_entry_returnPressed(self):
-        def result_finished(result):
-            if not result:
-                title = '错误'
-                warn = '搜索出错，请重试。'
-                QMessageBox.warning(self, title, warn)   
-
-                return
-                            
-            # 插入搜索结果
-            self.insert_search_result(result)
-
-        keyword = self.ui.input_entry.text()
-        # 是否含有非空白符
-        if search(r'\S', keyword) is None:
-            self.ui.results_view.clearContents()
-            return
-
-        # 切换引擎
-        engine = self.ui.input_engine.currentData()
-        helper.engine = engine
-
-        # 清除所有歌
-        self.ui.results_view.clearContents()
-        
-        # 选中搜索结果列表
-        self.ui.sidebar.setCurrentRow(1)
-        self.ui.stacked_tab.setCurrentIndex(1)
-
-        # 搜索
-        result_getter = SubThread(task=SubThread.get_result, keyword=keyword)
-        result_getter.result_finished.connect(result_finished)
-        self.result_getters.append(result_getter)
-        result_getter.start()
 
     # 拖动进度条
     @pyqtSlot()
@@ -358,12 +351,12 @@ class MainWindow(QMainWindow):
 
         # 当前音乐的 URL
         url = self.current_music_url
-
+        
         if not url:
             return
         
         # 获取音乐
-        music_content_getter = SubThread(task=SubThread.get_music_content, url=url)
+        music_content_getter = SubThread(task=SubThread.get_music_content, data=url)
         music_content_getter.music_content_finished.connect(music_content_finished)
         self.music_content_getters.append(music_content_getter)
         music_content_getter.start()
@@ -675,6 +668,42 @@ class MainWindow(QMainWindow):
         x = pos.x() - 2
         y = pos.y() - 250
         self.volume_menu.exec_(QPoint(x, y))
+        
+    # 搜索
+    def search(self):
+        def result_finished(result):
+            if not result:
+                title = '错误'
+                warn = '搜索出错，请重试。'
+                QMessageBox.warning(self, title, warn)   
+
+                return
+                            
+            # 插入搜索结果
+            self.insert_search_result(result)
+
+        keyword = self.ui.input_entry.text()
+        # 是否含有非空白符
+        if search(r'\S', keyword) is None:
+            self.ui.results_view.clearContents()
+            return
+
+        # 切换引擎
+        engine = self.ui.input_engine.currentData()
+        helper.engine = engine
+
+        # 清除所有歌
+        self.ui.results_view.clearContents()
+        
+        # 选中搜索结果列表
+        self.ui.sidebar.setCurrentRow(1)
+        self.ui.stacked_tab.setCurrentIndex(1)
+
+        # 搜索
+        result_getter = SubThread(task=SubThread.get_result, keyword=keyword)
+        result_getter.result_finished.connect(result_finished)
+        self.result_getters.append(result_getter)
+        result_getter.start()
 
     # 插入搜索结果
     def insert_search_result(self, datas):
@@ -699,7 +728,8 @@ class MainWindow(QMainWindow):
 
             content = QMediaContent(QUrl(url))
             sign = datas[6]
-            self.current_music_url = url
+            
+            self.current_music_url = sign.split(':')[0] + ':' + url
             # self.current_music_rid = ':'.join(sign.split(':')[1:])
             add_content(content, sign)
 
@@ -1123,6 +1153,8 @@ class CommonHelper:
     # 读取设置
     def read_settings(self, file):
         settings = load(open(file, 'r'))
+        settings.setdefault('window', {})
+        settings.setdefault('search', {})
         self.settings = settings
 
     # 设置搜索引擎
@@ -1132,9 +1164,13 @@ class CommonHelper:
             if s.startswith('Engine'):
                 engine = eval(f'mapi.{s}')
                 self.engines[engine.sign] = engine
-                if engine.sign == self.settings.get('default_engine', 'kuwo'):
+                if engine.sign == self.settings['search'].get('default_engine', 'kuwo'):
                     self.engine = engine
                     self.default_engine = engine
+                    
+    # 保存设置
+    def save_settings(self):
+        dump(self.settings, open('settings.json', 'w'), indent=4)
 
 def split_sign(sign):
     engine, *datas = sign.split(':')
@@ -1214,8 +1250,7 @@ def main():
 
     helper = CommonHelper()
 
-    app = QApplication(sys.argv)    
-    QApplication.setQuitOnLastWindowClosed(False)
+    app = QApplication(sys.argv)   
     
     window = MainWindow()
 
