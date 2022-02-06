@@ -14,7 +14,10 @@
 	<img src="https://img.shields.io/badge/PyQt-5.0+-brightgreen.svg" title="PyQt5" />
 </p>
 
-<p align="center">源码：<a href="https://gitee.com/hi-jie/HiMusic">Gitee 码云</a></p>
+<p align="center">
+	源码：
+	<a href="https://gitee.com/hi-jie/HiMusic">Gitee 码云</a>
+</p>
 
 ## 简介
 
@@ -26,19 +29,27 @@
 
 - 集成酷狗音乐、酷我音乐歌曲搜索与下载（未来将会支持更多的平台）
 
-- 支持歌词同步滚动，进度条控制音乐进度
+- 歌词同步滚动与歌曲进度控制，舒适的听歌体验
 
 - 多种播放模式选择
+
+- 播放列表操作，快速管理歌曲
+
+### **我们的优势**
+
+- 界面美观高端，现代化扁平风格
 
 完整更新记录详见：[CHANGES.md](CHANGES.md)
 
 ## 简明运行教程
 
-使用前请确保您已经在电脑上安装好了 `Python 3.8+`。
+使用前请确保您已经在电脑上安装好了 `Python 3.8+`。如果未安装，可以在官网（[https://www.python.org/downloads/](https://www.python.org/downloads/)）下载。
 
 ### 1、安装依赖库
 
-快捷键 `Win+R` 输入 `cmd` 回车打开命令行，运行 `pip` 安装命令。
+#### 方法一
+
+快捷键 `Win+R`，输入 `cmd` 回车打开命令行，运行 `pip` 安装命令。
 
 连接 Python 官方 Pypi 安装很慢，因此推荐使用国内 **清华镜像** 安装：
 
@@ -46,9 +57,13 @@
 pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 
-或者运行文件夹下 `requirements.bat` 批处理文件自动安装依赖库。
+#### 方法二（推荐）
+
+直接运行文件夹下 `requirements.bat` 批处理文件自动安装依赖库。
 
 ### 2、运行
+
+#### 方法一
 
 快捷键 `Win+R` 输入 `cmd` 回车打开命令行，输入以下命令运行：
 
@@ -56,7 +71,9 @@ pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 python -m run.pyw
 ```
 
-或者双击运行 `run.pyw` 文件。
+#### 方法二（推荐）
+
+直接双击运行 `run.pyw` 文件。
 
 ## 运行截图
 
@@ -99,3 +116,8 @@ HiMusic基于以下项目进行开发，在此表示感谢：
 开源版的使用者必须保留 Hi音乐 相关版权标识，禁止对 Hi音乐 相关版权标识进行修改和删除。
 
 如果违反，开发者保留对侵权者追究责任的权利。
+
+---
+
+[![star](https://gitee.com/hi-jie/himusic/badge/star.svg?theme=dark)](https://gitee.com/hi-jie/himusic)
+[![fork](https://gitee.com/hi-jie/himusic/badge/fork.svg?theme=dark)](https://gitee.com/hi-jie/himusic)
