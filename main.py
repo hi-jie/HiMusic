@@ -15,7 +15,7 @@ from PyQt5.Qt import QPropertyAnimation
 import qtawesome as qta
 
 from widgets import ui_MainWindow, TrayIconWidget, VolumeControler
-import mapi
+from himusic import mapi
 
 class MainWindow(QMainWindow):
     result_getters = [] # 获取搜索结果线程集
@@ -1146,7 +1146,7 @@ class CommonHelper:
         self.read_qss('qss/buttons.qss')
 
         # 读取设置
-        self.read_settings('settings.json')
+        self.read_settings('himusic/settings.json')
 
         # 设置引擎
         self.set_engine()
@@ -1176,7 +1176,7 @@ class CommonHelper:
                     
     # 保存设置
     def save_settings(self):
-        dump(self.settings, open('settings.json', 'w'), indent=4)
+        dump(self.settings, open('himusic/settings.json', 'w'), indent=4)
 
 def split_sign(sign):
     engine, *datas = sign.split(':')
