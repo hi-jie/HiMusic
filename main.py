@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import (QApplication, QMainWindow, QLabel,
                              QFileDialog, QMessageBox,
                              QSystemTrayIcon, QMenu, QAction, QWidgetAction)
 from PyQt5.QtCore import (Qt, QSize, QPoint, QMetaObject, pyqtSignal, pyqtSlot, QThread, QUrl, QTimer, QDir)
-from PyQt5.QtGui import (QFont, QImage, QPixmap, QPalette, QBrush)
+from PyQt5.QtGui import (QIcon, QFont, QImage, QPixmap, QPalette, QBrush)
 from PyQt5.QtMultimedia import (QMediaPlayer, QMediaPlaylist, QMediaContent)
 from PyQt5.Qt import QPropertyAnimation
 import qtawesome as qta
@@ -61,7 +61,7 @@ class MainWindow(QMainWindow):
         self.ui.setupUi(self)
 
         self.setWindowFlags(Qt.FramelessWindowHint) # 窗口去边框
-        self.setWindowIcon(Icon('imgs/ico.ico'))
+        self.setWindowIcon(QIcon('imgs/ico.ico'))
 
         self.set_effect() # 生成特效
         self.set_shadow() # 设置窗口阴影
