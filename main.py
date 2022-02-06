@@ -61,7 +61,7 @@ class MainWindow(QMainWindow):
         self.ui.setupUi(self)
 
         self.setWindowFlags(Qt.FramelessWindowHint) # 窗口去边框
-        self.setWindowIcon(qta.icon('fa.music', color='#2080f0'))
+        self.setWindowIcon(Icon('imgs/ico.ico'))
 
         self.set_effect() # 生成特效
         self.set_shadow() # 设置窗口阴影
