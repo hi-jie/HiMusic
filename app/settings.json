@@ -1,0 +1,8 @@
+{
+    "search": {
+        "default_engine": "kuwo"
+    },
+    "window": {
+        "close_trayicon": true
+    }
+}
