@@ -15,7 +15,7 @@
 </p>
 
 <p align="center">
-	源码：
+	源码 :
 	<a href="https://gitee.com/hi-jie/HiMusic">Gitee 码云</a>
 </p>
 
@@ -35,15 +35,15 @@
 
 - 播放列表操作，快速管理歌曲
 
-### **我们的优势**
+### **与其他播放器相比**
 
-- 界面美观高端，现代化扁平风格
+- 界面简洁美观高端大气，现代化扁平风格
 
 完整更新记录详见：[CHANGES.md](CHANGES.md)
 
 ## 简明运行教程
 
-使用前请确保您已经在电脑上安装好了 `Python 3.8+`。如果未安装，可以在官网（[https://www.python.org/downloads/](https://www.python.org/downloads/)）下载。
+使用前请确保您已经在电脑上安装好了 `Python`。如果未安装，可以在官网（[www.python.org/downloads/](https://www.python.org/downloads/)）下载。
 
 ### 1、安装依赖库
 
@@ -96,6 +96,8 @@ python -m run.pyw
 ## 交流
 
 微信：JIE（ZZJ_zzh）
+
+QQ：3318897344
 
 CSDN：[张大帅哥](https://blog.csdn.net/weixin_48448842?type=blog)
 
