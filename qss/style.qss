@@ -176,6 +176,16 @@ QMenu::separator {
     padding-right: -5px;
 }
 
+/*首页*/
+#home_tab>QLabel {
+    padding-top: 9px;
+    font-size: 20px;
+    font-weight: bold;
+}
+#last_song::item {
+    border: none;
+}
+
 /*歌词页*/
 #big_mname {
     font-size: 20px;
@@ -196,22 +206,7 @@ QMenu::separator {
 }
 
 /*播放列表页按钮*/
-.QSongsEditBar QPushButton {
-    border: 1px solid #2080f0;
-    border-radius: 13px;
-    background-color: #f7f8f8;
-}
-.QSongsEditBar QPushButton:hover {
-    background-color: #e5e5e5;
-}
-.QSongsEditBar QPushButton:pressed {
-    background-color: #ddd;
-}
-.QSongsEditBar QPushButton:!enabled {
-    color: #999;
-    border: 1px solid #ddd;
-    background-color: #f6f7f7;
-}
+/*见 qss/buttons,qss [is_editbtn=true]
 
 /*设置页*/
 #settings_contents, #settings_area {

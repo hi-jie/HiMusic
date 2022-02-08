@@ -4,6 +4,22 @@
 [is_toolbtn=true]:hover {
 	background-color: #ddd;
 }
+[is_editbtn=true] {
+    border: 1px solid #2080f0;
+    border-radius: 13px;
+    background-color: #f7f8f8;
+}
+[is_editbtn=true]:hover {
+    background-color: #e5e5e5;
+}
+[is_editbtn=true]:pressed {
+    background-color: #ddd;
+}
+[is_editbtn=true]:!enabled {
+    color: #999;
+    border: 1px solid #ddd;
+    background-color: #f6f7f7;
+}
 #max_win, #min_win, #close_win {
 	border: none;
 }
