@@ -7,7 +7,7 @@ class QVolumeControler(QWidget):
     volumeChanged = pyqtSignal(int)
     mutedChanged = pyqtSignal(bool)
 
-    __is_muted = False
+    is_muted = False
 
     def __init__(self, parent):
         QWidget.__init__(self, parent)
@@ -48,36 +48,22 @@ class QVolumeControler(QWidget):
 
 # ======== 自动关联的槽函数 ========
 
+    # 音量变化
     @pyqtSlot(int)
     def on_volume_bar_valueChanged(self, value):
-        self.change_mute_icon()
+        self.set_volume_data()
         self.volumeChanged.emit(value)
 
+    # 按下静音按钮
     @pyqtSlot()
     def on_volume_mute_clicked(self):
-        self.__is_muted = not self.__is_muted
-
-        if self.__is_muted:
-            self.volume_lab.setText('0')
-            self.volume_mute.setToolTip('取消静音')
-            self.volume_mute.setIcon(qta.icon('fa.volume-off', color='#555'))
-            self.volume_bar.setEnabled(False)
-            self.volumeChanged.emit(0)
-            self.volume_mute.setStyleSheet('''
-#volume_mute {background-color: #ddd;}
-#volume_mute:hover {background-color: #ccc;}
-''')
-        else:         
-            self.change_mute_icon()
-            self.volume_mute.setToolTip('静音')   
-            self.volume_bar.setEnabled(True)  
-            self.volumeChanged.emit(self.volume_bar.value())
-            self.volume_mute.setStyleSheet('''
-#volume_mute {background-color: white;}
-#volume_mute:hover {background-color: #ddd;}
-''')
-
-        self.mutedChanged.emit(self.__is_muted)
+        self.is_muted = not self.is_muted 
+        
+        # 设置音量信息
+        self.set_volume_data()
+            
+        self.volumeChanged.emit(self.volume_bar.value()) 
+        self.mutedChanged.emit(self.is_muted)
 
 # ======== 自定义槽函数 ========
 
@@ -85,18 +71,42 @@ class QVolumeControler(QWidget):
 
 # ======== 其他方法 ========
 
-    def change_mute_icon(self):
+    # 获取当前音量对应图标
+    def get_volume_icon(self):
         value = self.volume_bar.value()
 
-        self.volume_lab.setText(str(value))
-        self.volume_lab.setToolTip(str(value))
-        self.volume_bar.setToolTip(str(value))
-
-        color = '#555'
-
         if value == 0:
-            self.volume_mute.setIcon(qta.icon('fa.volume-off', color=color))
+            icon_name = 'fa.volume-off'
         elif 0 < value <= 50:
-            self.volume_mute.setIcon(qta.icon('fa.volume-down', color=color))        
+            icon_name = 'fa.volume-down'     
         else:    
-            self.volume_mute.setIcon(qta.icon('fa.volume-up', color=color))
+            icon_name = 'fa.volume-up'
+            
+        if self.is_muted:
+            icon = qta.icon(icon_name, 'fa.ban', options=[{'color': '#777'}, {'color': '#f33', 'offset': (0.15, 0.15), 'scale_factor': 0.8}])
+        else:
+            icon = qta.icon(icon_name, color='#555')
+        
+        return icon
+    
+    # 设置音量信息
+    def set_volume_data(self):         
+        # 音量标签
+        if self.is_muted:
+            value = '0'
+        else:
+            value = str(self.volume_bar.value())
+        self.volume_lab.setText(value)
+        self.volume_lab.setToolTip(value)
+        self.volume_bar.setToolTip(value)
+            
+        # 当前音量对应图标
+        icon = self.get_volume_icon()
+
+        if self.is_muted:
+            self.volume_mute.setToolTip('取消静音')
+        else:         
+            self.volume_mute.setToolTip('静音')   
+            
+        self.volume_mute.setIcon(icon)            
+        self.volume_bar.setEnabled(not self.is_muted)
