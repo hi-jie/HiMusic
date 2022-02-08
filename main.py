@@ -423,6 +423,11 @@ class MainWindow(QMainWindow):
         else:
             self.ui.mvolume.setToolTip(f'音量 {value}')  
             
+    # “上次在听”播放
+    @pyqtSlot()
+    def on_last_song_play_clicked(self):
+        self.add_media(self.ui.last_song.get_datas(0), play=True)
+            
     # “上次的播放列表”添加全部
     @pyqtSlot()
     def on_last_playlist_addall_clicked(self):
