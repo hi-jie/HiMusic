@@ -5,6 +5,7 @@ from json import load, dump
 
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QLabel, 
                              QListView, 
+                             QTableWidgetItem,
                              QGraphicsDropShadowEffect, QGraphicsBlurEffect,
                              QFileDialog, QMessageBox,
                              QSystemTrayIcon, QMenu, QAction, QWidgetAction)
@@ -15,7 +16,7 @@ from PyQt5.Qt import QPropertyAnimation
 import qtawesome as qta
 
 from widgets import ui_MainWindow, TrayIconWidget, VolumeControler
-from himusic import mapi
+from app import mapi
 
 class MainWindow(QMainWindow):
     result_getters = [] # 获取搜索结果线程集
@@ -69,6 +70,7 @@ class MainWindow(QMainWindow):
         self.setup_system_tray() # 设置托盘图标
         self.setup_volume_menu() # 设置音量菜单
         self.setup_ui() # 组件初始化
+        self.setup_cache() # 设置缓存
         self.setup_settings() # 设置
         self.setup_engine() # 导入引擎
         self.setup_media() # 设置播放器
@@ -93,21 +95,32 @@ class MainWindow(QMainWindow):
         font = qta.font('fa', 14)
         self.ui.logo.setText('Hi 音乐')
         self.ui.logo.setFont(font)
-        # self.ui.sidebar.item(0).setText(chr(0xf015) + '      首页     ')
-        self.ui.sidebar.item(0).setText(chr(0xf002) + '   搜索结果 ')
-        self.ui.sidebar.item(1).setText(chr(0xf0db) + '      歌词     ')
+        self.ui.sidebar.item(0).setText(chr(0xf015) + '      首页     ')
+        self.ui.sidebar.item(1).setText(chr(0xf002) + '   搜索结果 ')
+        self.ui.sidebar.item(2).setText(chr(0xf0db) + '      歌词     ')
         # self.ui.sidebar.item(2).setText(chr(0xf08a) + '   我的收藏 ')
-        self.ui.sidebar.item(2).setText(chr(0xf03a) + '   播放列表 ')
-        self.ui.sidebar.item(3).setText(chr(0xf013) + '      设置     ')
+        self.ui.sidebar.item(3).setText(chr(0xf03a) + '   播放列表 ')
+        self.ui.sidebar.item(4).setText(chr(0xf013) + '      设置     ')
         self.ui.sidebar.item(0).setFont(font)
         self.ui.sidebar.item(1).setFont(font)
         self.ui.sidebar.item(2).setFont(font)
         self.ui.sidebar.item(3).setFont(font)
-        # self.ui.sidebar.item(4).setFont(font)
+        self.ui.sidebar.item(4).setFont(font)
         # self.ui.sidebar.item(5).setFont(font)
       
         # 菜单栏选中首页
         self.ui.sidebar.setCurrentRow(0)
+        
+        # 首页“上次在听”
+        self.ui.last_song.horizontalHeader().setVisible(False)
+        self.ui.last_song.setRowCount(1) # 一行
+        self.ui.last_song.verticalHeader().setDefaultSectionSize(50) # 高50px
+        color = '#555'
+        self.ui.last_song_play.setIcon(qta.icon('fa.play-circle-o', color=color))
+        self.ui.last_playlist_addall.setIcon(qta.icon('fa.plus', color=color))
+        
+        # 首页“上次播放列表”
+        self.ui.last_playlist.verticalHeader().setDefaultSectionSize(50) # 高50px
 
         # 工具按钮图标
         color = self.toolbtn_color
@@ -133,6 +146,39 @@ class MainWindow(QMainWindow):
         
         # 设置
         self.ui.settings_close_trayicon.setCursor(Qt.PointingHandCursor)
+        
+    # 设置缓存
+    def setup_cache(self):  
+        # 初始化“上次在听”
+        try:
+            datas = helper.cache['last_song']
+            self.insert_songs_datas(self.ui.last_song, datas, 0)
+            self.ui.last_song.itemPlay.connect(self.music_selected) # 选中上次播放
+        except:
+            self.ui.last_song.setItem(0, 2, QTableWidgetItem('上次无在听歌曲'))
+            self.ui.last_song_play.setEnabled(False) # 禁用播放
+            
+        self.ui.last_song.setItem(0, 0, QTableWidgetItem(''))
+        
+        # 初始化“上次的播放列表”
+        try:
+            datas = helper.cache['last_playlist']
+            if not datas:
+                raise Exception()
+            
+            self.ui.last_playlist.setRowCount(len(datas))
+            for i, data in enumerate(datas):
+                self.insert_songs_datas(self.ui.last_playlist, data, i)
+                
+            self.ui.last_playlist.itemPlay.connect(self.music_selected) # 选中上次播放列表
+        except:
+            self.ui.last_playlist.setMaximumHeight(52)
+            self.ui.last_playlist.horizontalHeader().setVisible(False)
+            self.ui.last_playlist.setRowCount(1)
+            self.ui.last_playlist.setItem(0, 2, QTableWidgetItem('上次无播放列表'))
+            self.ui.last_playlist.setItem(0, 0, QTableWidgetItem(''))
+            
+            self.ui.last_playlist_addall.setEnabled(False) # 禁用添加到播放列表
 
     # 设置
     def setup_settings(self):
@@ -152,6 +198,7 @@ class MainWindow(QMainWindow):
         QMetaObject.connectSlotsByName(self.ui.centralwidget)
         
         self.ui.min_win.clicked.connect(self.showMinimized) # 窗口最小化
+        self.ui.close_win.clicked.connect(self.close)
         
         self.ui.input_engine.currentIndexChanged[int].connect(self.search) # 搜索引擎切换
         self.ui.input_entry.returnPressed.connect(self.search) # 搜索框按下回车
@@ -238,7 +285,7 @@ class MainWindow(QMainWindow):
         self.act_open = QAction(qta.icon('fa.window-maximize', color=color), '打开', self)
         self.act_open.triggered.connect(self.showNormal)
         self.act_quit = QAction(qta.icon('fa.power-off', color='#f33'), '退出', self)
-        self.act_quit.triggered.connect(QApplication.instance().quit)
+        self.act_quit.triggered.connect(self.app_quit)
 
         self.tray_icon_menu = QMenu(self)
         self.tray_icon_menu.addAction(self.act_state)
@@ -249,7 +296,7 @@ class MainWindow(QMainWindow):
         self.tray_icon = QSystemTrayIcon()
         self.tray_icon.setObjectName('tray_icon')
         self.tray_icon.setContextMenu(self.tray_icon_menu)
-        self.tray_icon.setIcon(qta.icon('fa.music', color='#2080f0'))
+        self.tray_icon.setIcon(QIcon('imgs/ico.ico'))#qta.icon('fa.music', color='#2080f0'))
         self.tray_icon.setToolTip('Hi 音乐\n无歌曲')
         self.tray_icon.activated.connect(self.on_tray_icon_activated)
         self.tray_icon.show()
@@ -282,24 +329,12 @@ class MainWindow(QMainWindow):
     # 标题栏“更多”按钮
     @pyqtSlot()
     def on_settings_clicked(self):
-        self.ui.sidebar.setCurrentRow(3)
-        self.ui.stacked_tab.setCurrentIndex(3)
+        self.ui.sidebar.setCurrentRow(4)
+        self.ui.stacked_tab.setCurrentIndex(4)
 
     # 关闭窗口
     @pyqtSlot()
     def on_close_win_clicked(self):
-        # 关闭时最小化到托盘
-        close_trayicon = self.ui.settings_close_trayicon.isChecked()
-        helper.settings['window']['close_trayicon'] = close_trayicon
-        QApplication.setQuitOnLastWindowClosed(not close_trayicon)
-        
-        # 默认搜索引擎
-        helper.settings['search']['default_engine'] = self.ui.settings_default_engine.currentData()
-        
-        # 保存
-        helper.save_settings()
-        
-        # 关闭窗口
         self.close()
     
     # 窗口最大化/还原窗口
@@ -370,22 +405,30 @@ class MainWindow(QMainWindow):
     # “播放列表”按钮按下
     @pyqtSlot()
     def on_mplaylist_clicked(self):
-        self.ui.sidebar.setCurrentRow(2)
-        self.ui.stacked_tab.setCurrentIndex(2)
+        self.ui.sidebar.setCurrentRow(3)
+        self.ui.stacked_tab.setCurrentIndex(3)
 
     # 音量调整
     @pyqtSlot(int)
     def on_volume_widget_volumeChanged(self, value):
         self.player.setVolume(value)
-        if value == 0:
-            icon = 'fa.volume-off'
-        elif 0 < value <= 50:
-            icon = 'fa.volume-down'
+        # 当前音量对应图标
+        icon = self.volume_widget.get_volume_icon()   
+           
+        self.ui.mvolume.setIcon(icon)
+        self.menu_widget.menu_volume.setIcon(icon)
+        
+        if self.volume_widget.is_muted:
+            self.ui.mvolume.setToolTip('音量 0') 
         else:
-            icon = 'fa.volume-up'
-        self.ui.mvolume.setIcon(qta.icon(icon, color=self.toolbtn_color))
-        self.ui.mvolume.setToolTip(f'音量 {value}')
-        self.menu_widget.menu_volume.setIcon(qta.icon(icon, color=self.toolbtn_color))
+            self.ui.mvolume.setToolTip(f'音量 {value}')  
+            
+    # “上次的播放列表”添加全部
+    @pyqtSlot()
+    def on_last_playlist_addall_clicked(self):
+        for row in range(self.ui.last_playlist.rowCount()):
+            datas = self.ui.last_playlist.get_datas(row)
+            self.add_media(datas)
         
     # 搜索结果添加到列表
     @pyqtSlot(list)
@@ -488,6 +531,11 @@ class MainWindow(QMainWindow):
 
 
 # ======== 自定义槽函数 ========
+
+    # 退出程序
+    def app_quit(self):
+        self.close()
+        app.quit()
 
     # 界面音量按钮点击
     def on_mvolume_clicked(self):
@@ -600,6 +648,24 @@ class MainWindow(QMainWindow):
 
 # ======== 组件事件 ========
 
+    # 窗口关闭事件
+    def closeEvent(self, event):
+        # 设置
+        helper.settings['window']['close_trayicon'] = self.ui.settings_close_trayicon.isChecked() # 关闭时最小化到托盘
+        helper.settings['search']['default_engine'] = self.ui.settings_default_engine.currentData() # 默认搜索引擎
+        helper.save_settings() # 保存设置
+        
+        # 缓存    
+        try:
+            helper.cache['last_song'] = self.__playlist[self.playlist.currentIndex()][1] # 上次在听
+        except:
+            helper.cache['last_song'] = []
+        try:
+            helper.cache['last_playlist'] = list(zip(*self.__playlist))[1]
+        except:
+            helper.cache['last_playlist'] = []
+        helper.save_cache() # 保存缓存
+
     # 窗口边缘按下
     def on_main_frame_mousePressEvent(self, event):
         if self.isMaximized() or self.isFullScreen():
@@ -664,8 +730,8 @@ class MainWindow(QMainWindow):
 
     # 小图片按下
     def on_mimage_mouseReleaseEvent(self, event):
-        self.ui.sidebar.setCurrentRow(1)
-        self.ui.stacked_tab.setCurrentIndex(1)
+        self.ui.sidebar.setCurrentRow(2)
+        self.ui.stacked_tab.setCurrentIndex(2)
 
 # ======== 其他方法 ========
 
@@ -702,8 +768,8 @@ class MainWindow(QMainWindow):
         self.ui.results_view.clearContents()
         
         # 选中搜索结果列表
-        self.ui.sidebar.setCurrentRow(0)
-        self.ui.stacked_tab.setCurrentIndex(0)
+        self.ui.sidebar.setCurrentRow(1)
+        self.ui.stacked_tab.setCurrentIndex(1)
 
         # 搜索
         result_getter = SubThread(task=SubThread.get_result, keyword=keyword)
@@ -761,7 +827,7 @@ class MainWindow(QMainWindow):
 
             # 播放
             if play:
-                self.start_play(index, datas)
+                self.start_play(index)
 
             return index
 
@@ -822,7 +888,7 @@ class MainWindow(QMainWindow):
         self.ui.playlist_view.selectRow(to_row)
 
     # 播放音乐
-    def start_play(self, index, datas): 
+    def start_play(self, index): 
         self.ui.mdownload.setStyleSheet('''
 #mdownload {background: transparent;}
 #mdownload:hover {background: #ddd;}
@@ -1138,6 +1204,7 @@ class CommonHelper:
     default_engine = mapi.EngineKuwo
     engines = {}
     settings = {}
+    cache = {}
     qss = []
 
     def __init__(self):
@@ -1146,7 +1213,10 @@ class CommonHelper:
         self.read_qss('qss/buttons.qss')
 
         # 读取设置
-        self.read_settings('himusic/settings.json')
+        self.read_settings('app/settings.json')
+        
+        # 读取缓存
+        self.read_cache()
 
         # 设置引擎
         self.set_engine()
@@ -1162,6 +1232,10 @@ class CommonHelper:
         settings.setdefault('window', {})
         settings.setdefault('search', {})
         self.settings = settings
+        
+    # 读取缓存
+    def read_cache(self):
+        self.cache = load(open('app/cache.json', 'r'))
 
     # 设置搜索引擎
     def set_engine(self):
@@ -1176,7 +1250,11 @@ class CommonHelper:
                     
     # 保存设置
     def save_settings(self):
-        dump(self.settings, open('himusic/settings.json', 'w'), indent=4)
+        dump(self.settings, open('app/settings.json', 'w'), indent=4)
+        
+    # 保存缓存
+    def save_cache(self):
+        dump(self.cache, open('app/cache.json', 'w'), indent=4)
 
 def split_sign(sign):
     engine, *datas = sign.split(':')
