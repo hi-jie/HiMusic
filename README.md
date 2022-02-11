@@ -77,21 +77,29 @@ python -m run.pyw
 
 ## 运行截图
 
+首页
+
+![首页](screenshots/home.png)
+
 搜索歌曲
 
-![搜索歌曲](/screenshots/search_results.png)
+![搜索歌曲](screenshots/search_result.png)
 
 歌词界面
 
-![歌词界面](/screenshots/lrcs.png)
+![歌词界面](screenshots/lrcs.png)
+
+收藏列表
+
+![收藏列表](screenshots/collections.png)
 
 播放列表
 
-![播放列表](/screenshots/playlist.png)
+![播放列表](screenshots/playlist.png)
 
 设置界面
 
-![设置界面](/screenshots/settings.png)
+![设置界面](screenshots/settings.png)
 
 ## 交流
 

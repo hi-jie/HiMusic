@@ -1,5 +1,51 @@
 {
-    "last_song": [],
-    "last_playlist": [],
-    "collections": []
+    "last_song": [
+        "\u5b64\u52c7\u8005",
+        "\u9648\u5955\u8fc5",
+        "\u5b64\u52c7\u8005",
+        "04:16",
+        "kuwo:https://img3.kuwo.cn/star/albumcover/500/49/79/1011385325.jpg",
+        "kuwo:https://img3.kuwo.cn/star/albumcover/120/49/79/1011385325.jpg",
+        "kuwo:198554068"
+    ],
+    "last_playlist": [
+        [
+            "\u5b64\u52c7\u8005",
+            "\u9648\u5955\u8fc5",
+            "\u5b64\u52c7\u8005",
+            "04:16",
+            "kuwo:https://img3.kuwo.cn/star/albumcover/500/49/79/1011385325.jpg",
+            "kuwo:https://img3.kuwo.cn/star/albumcover/120/49/79/1011385325.jpg",
+            "kuwo:198554068"
+        ],
+        [
+            "\u6d6e\u5938",
+            "\u9648\u5955\u8fc5",
+            "U 87",
+            "04:49",
+            "kuwo:https://img1.kuwo.cn/star/albumcover/500/83/42/4180851740.jpg",
+            "kuwo:https://img1.kuwo.cn/star/albumcover/120/83/42/4180851740.jpg",
+            "kuwo:110247"
+        ]
+    ],
+    "collections": [
+        [
+            "\u5b64\u52c7\u8005",
+            "\u9648\u5955\u8fc5",
+            "\u5b64\u52c7\u8005",
+            "04:16",
+            "kuwo:https://img3.kuwo.cn/star/albumcover/500/49/79/1011385325.jpg",
+            "kuwo:https://img3.kuwo.cn/star/albumcover/120/49/79/1011385325.jpg",
+            "kuwo:198554068"
+        ],
+        [
+            "\u6d6e\u5938",
+            "\u9648\u5955\u8fc5",
+            "U 87",
+            "04:49",
+            "kuwo:https://img1.kuwo.cn/star/albumcover/500/83/42/4180851740.jpg",
+            "kuwo:https://img1.kuwo.cn/star/albumcover/120/83/42/4180851740.jpg",
+            "kuwo:110247"
+        ]
+    ]
 }

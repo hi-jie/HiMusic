@@ -264,7 +264,7 @@ class EngineKugou:
     }
 
     @staticmethod
-    @error_getter
+    #@error_getter
     def search(kw: str):
         url = EngineKugou.search_url
         # params = EngineKugou.search_params
@@ -272,6 +272,8 @@ class EngineKugou:
         url = url.format(kw)
 
         response = requests.get(url).text
+        print(response)
+        
         json = loads(match('.*?({.*})', response).group(1))
         datas = json['data']['lists']
 
