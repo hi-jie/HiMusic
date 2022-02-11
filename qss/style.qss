@@ -171,6 +171,10 @@ QMenu::separator {
     width: 10px;
     margin: -2px 0;
 }
+#position_label {
+    color: #333;
+    font-size: 14px;
+}
 
 #stacked_tab {
     padding-right: -5px;
@@ -227,14 +231,23 @@ QMenu::separator {
     font-size: 14px;
     padding: 5px 0; 
 }
-#settings_contents QComboBox {
+#settings_contents QPushButton, 
+#settings_contents QComboBox, 
+#settings_contents QLineEdit {
     border: 1px solid #aaa;
     border-radius: 3px;
     background-color: transparent;
+}
+#settings_contents QPushButton:hover, 
+#settings_contents QComboBox:hover,
+#settings_contents QLineEdit:hover {
+    border: 1px solid #777;
+}
+#settings_contents QComboBox {
     padding: 4px 11px;
 }
-#settings_contents QComboBox:hover {
-    border: 1px solid #777;
+#settings_contents QLineEdit {
+    padding-left: 5px;
 }
 #settings_contents QCheckBox {
     height: 20px;
