@@ -4,5 +4,8 @@
     },
     "window": {
         "close_trayicon": true
+    },
+    "download": {
+        "path": ""
     }
 }
