@@ -1,14 +1,15 @@
 from PyQt5.QtWidgets import (QWidget, QPushButton, QSpacerItem,
                              QHBoxLayout, 
-                             QSizePolicy)
-from PyQt5.QtCore import (QSize, QMetaObject, pyqtSignal, pyqtSlot)
+                             QSizePolicy,
+                             QFileDialog)
+from PyQt5.QtCore import (QSize, pyqtSignal, QDir)
 import qtawesome as qta
 
 class QSongsEditBar(QWidget):
     upmoved = pyqtSignal()
     downmoved = pyqtSignal()
     removed = pyqtSignal()
-    fromLocal = pyqtSignal()
+    fromLocal = pyqtSignal(list)
 
     def __init__(self, parent):
         QWidget.__init__(self, parent)
@@ -69,16 +70,35 @@ class QSongsEditBar(QWidget):
         self.downmoved.emit()
 
     def on_from_local_clicked(self):
-        self.fromLocal.emit()
+        cur_path = QDir.currentPath()
+        title = '打开'
+        filt = '所有文件(*.*);;mp3文件(*.mp3)'
+        filelist, file_filter = QFileDialog.getOpenFileNames(self, title, cur_path, filt)
+        
+        datas = []
 
-    def setUpmoveEnabled(self, state: bool):
-        self.upmove.setEnabled(state)
+        for index, url in enumerate(filelist):
+            path = '/'.join(url.replace('\\', '/').split('/')[:-1])
+            file = url.replace('\\', '/').split('/')[-1]
+            file_name = '.'.join(file.split('.')[:-1])
+            suffix = file.split('.')[-1]
 
-    def setDownmoveEnabled(self, state: bool):
-        self.downmove.setEnabled(state)
+            if suffix not in ['mp3']:
+                continue
 
-    def setRemoveEnabled(self, state: bool):
-        self.remove.setEnabled(state)
+            song_name = file_name
+            name_split = song_name.split('-')
+            if len(name_split) != 1:
+                song_name = '-'.join(name_split[:-1])
+                artist = name_split[-1]
+            else:
+                artist = '本地'
+            album = '本地'
+
+            data = [song_name, artist, album, '', *['local:' + url] * 3]
+            datas.append(data)
+            
+        self.fromLocal.emit(datas)
         
     def upmoveEnabled(self):
         return self.upmove.isEnabled()
@@ -89,6 +109,39 @@ class QSongsEditBar(QWidget):
     def removeEnabled(self):
         return self.remove.isEnabled()
 
-# ======== 组件事件
+    # 歌曲列表选中歌曲变化
+    def on_table_itemSelectionChanged(self):
+        selected_items = self.table.selectedItems()
+
+        # “删除”按钮
+        if len(selected_items) != 0:
+            self.remove.setEnabled(True)
+        else:
+            self.remove.setEnabled(False)
+
+        # “上移”、“下移”按钮
+        if len(selected_items) != 1 * 5:
+            self.upmove.setEnabled(False)
+            self.downmove.setEnabled(False)
+
+            return
+
+        row = self.table.row(selected_items[0])
+
+        if row != 0:
+            self.upmove.setEnabled(True)
+        else:
+            self.upmove.setEnabled(False)
+
+        if row != self.table.rowCount() - 1:
+            self.downmove.setEnabled(True)
+        else:
+            self.downmove.setEnabled(False)
+
+# ======== 组件事件 ========
 
 # ======== 其他方法 ========
+
+    def bind_table(self, widget):
+        self.table = widget
+        self.table.itemSelectionChanged.connect(self.on_table_itemSelectionChanged)

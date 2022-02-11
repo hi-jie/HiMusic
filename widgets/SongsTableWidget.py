@@ -28,9 +28,8 @@ class QSongsTableWidget(QTableWidget):
         # 列宽、行高
         self.setColumnWidth(0, 20)
         self.setColumnWidth(1, 50)
-        self.setColumnWidth(3, 120)
-        self.setColumnWidth(4, 120)
         self.setColumnWidth(5, 50)
+        self.horizontalHeader().setSectionResizeMode(QHeaderView.Fixed)
         self.horizontalHeader().setSectionResizeMode(2, QHeaderView.Stretch)
         # 隐藏列
         self.setColumnHidden(6, True)
@@ -97,6 +96,13 @@ class QSongsTableWidget(QTableWidget):
         pass
 
 # ======== 事件 ========
+
+    # 重绘
+    def paintEvent(self, event) -> None:
+        self.setColumnWidth(3, self.width() / 5) 
+        self.setColumnWidth(4, self.width() / 5)       
+        
+        return QTableWidget.paintEvent(self, event)
 
     # 松开鼠标
     def on_mouseReleaseEvent(self, event):
@@ -179,7 +185,7 @@ class QSongsTableWidget(QTableWidget):
         self.insert_datas(from_row, to_datas)
         self.insert_pixmap(to_row, from_pixmap)
         self.insert_pixmap(from_row, to_pixmap)
-        self.horizontalHeader().setCurrentIndex(self.model().index(to_row, 0))
+        self.selectRow(to_row)
 
     def remove_item(self, row):
         self.removeRow(row)
