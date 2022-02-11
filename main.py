@@ -43,6 +43,7 @@ class MainWindow(QMainWindow):
     lrcs_top = 2 # 歌词距离顶部的个数
     __lrc_index = 0 # 当前歌词序号
     lrcs_animation = None # 歌词动画
+    __scrolling_timers = [] # 正在拖动歌词的定时器们
 
     current_music_url = '' # 当前音乐网址
 
@@ -79,6 +80,7 @@ class MainWindow(QMainWindow):
         self.setup_slots() # 组件槽连接
         self.setup_events() # 组件事件连接
 
+    # 设置UI
     def setup_ui(self):  
         # 窗口背景自动填充，不可透明
         self.ui.main_frame.setAutoFillBackground(True)
@@ -98,15 +100,15 @@ class MainWindow(QMainWindow):
         self.ui.sidebar.item(0).setText(chr(0xf015) + '      首页     ')
         self.ui.sidebar.item(1).setText(chr(0xf002) + '   搜索结果 ')
         self.ui.sidebar.item(2).setText(chr(0xf0db) + '      歌词     ')
-        # self.ui.sidebar.item(2).setText(chr(0xf08a) + '   我的收藏 ')
-        self.ui.sidebar.item(3).setText(chr(0xf03a) + '   播放列表 ')
-        self.ui.sidebar.item(4).setText(chr(0xf013) + '      设置     ')
+        self.ui.sidebar.item(3).setText(chr(0xf08a) + '   我的收藏 ')
+        self.ui.sidebar.item(4).setText(chr(0xf03a) + '   播放列表 ')
+        self.ui.sidebar.item(5).setText(chr(0xf013) + '      设置     ')
         self.ui.sidebar.item(0).setFont(font)
         self.ui.sidebar.item(1).setFont(font)
         self.ui.sidebar.item(2).setFont(font)
         self.ui.sidebar.item(3).setFont(font)
         self.ui.sidebar.item(4).setFont(font)
-        # self.ui.sidebar.item(5).setFont(font)
+        self.ui.sidebar.item(5).setFont(font)
       
         # 菜单栏选中首页
         self.ui.sidebar.setCurrentRow(0)
@@ -121,6 +123,13 @@ class MainWindow(QMainWindow):
         
         # 首页“上次播放列表”
         self.ui.last_playlist.verticalHeader().setDefaultSectionSize(50) # 高50px
+        
+        # 收藏列表
+        self.ui.collections_view.verticalHeader().setDefaultSectionSize(50) # 高50px
+        self.ui.collections_view_editbar.bind_table(self.ui.collections_view)
+        
+        # 播放列表
+        self.ui.playlist_view_editbar.bind_table(self.ui.playlist_view)
 
         # 工具按钮图标
         color = self.toolbtn_color
@@ -179,6 +188,15 @@ class MainWindow(QMainWindow):
             self.ui.last_playlist.setItem(0, 0, QTableWidgetItem(''))
             
             self.ui.last_playlist_addall.setEnabled(False) # 禁用添加到播放列表
+            
+        # 初始化“我的收藏”
+        datas = helper.cache['collections']
+        
+        self.ui.collections_view.setRowCount(len(datas))
+        for i, data in enumerate(datas):
+            self.insert_songs_datas(self.ui.collections_view, data, i)
+            
+        self.ui.collections_view.itemPlay.connect(self.music_selected)
 
     # 设置
     def setup_settings(self):
@@ -191,6 +209,9 @@ class MainWindow(QMainWindow):
         close_trayicon = settings['window'].get('close_trayicon', True)
         self.ui.settings_close_trayicon.setChecked(close_trayicon)
         QApplication.setQuitOnLastWindowClosed(not close_trayicon)
+        
+        # 下载地址
+        self.ui.settings_download_path_edit.setText(settings['download'].get('path', ''))
 
     # 组件槽连接
     def setup_slots(self): 
@@ -228,18 +249,33 @@ class MainWindow(QMainWindow):
         self.player.stateChanged.connect(self.state_changed) # 播放器状态变化
 
         self.playlist.currentIndexChanged.connect(self.music_changed) # 播放器音乐变化
-
-        self.ui.playlist_view_editbar.fromLocal.connect(self.on_from_local_clicked)
+        
+        # 添加到播放列表
+        self.ui.last_song.itemAdd.connect(self.add_to_playlist)
+        self.ui.last_playlist.itemAdd.connect(self.add_to_playlist)
+        self.ui.results_view.itemAdd.connect(self.add_to_playlist)
+        self.ui.collections_view.itemAdd.connect(self.add_to_playlist)
+        
+        # 收藏歌曲
+        self.ui.last_song.itemCollect.connect(self.collect)
+        self.ui.last_playlist.itemCollect.connect(self.collect)
+        self.ui.results_view.itemCollect.connect(self.collect)
+        self.ui.playlist_view.itemCollect.connect(self.collect)
+        self.ui.mcollect.clicked.connect(self.collect) # 控制框点击收藏
 
     # 组件事件连接        
     def setup_events(self):
         self.ui.main_frame.mousePressEvent = self.on_main_frame_mousePressEvent # 窗口边缘按下
         self.ui.main_frame.mouseMoveEvent = self.on_main_frame_mouseMoveEvent # 调整窗口大小
         self.ui.main_frame.mouseReleaseEvent = self.on_main_frame_mouseReleaseEvent # 窗口边缘松开
+        
         self.ui.logo.mousePressEvent = self.on_logo_mousePressEvent # logo 按下
         self.ui.logo.mouseMoveEvent = self.on_logo_mouseMoveEvent  # logo 拖动
         self.ui.logo.mouseReleaseEvent = self.on_logo_mouseReleaseEvent # logo 松开
+        
         self.ui.mimage.mouseReleaseEvent = self.on_mimage_mouseReleaseEvent # 小图片按下
+        
+        self.ui.lrcs_view_content.mouseDoubleClickEvent = self.on_lrcs_view_content_mouseDoubleClickEvent # 歌词容器双击
         
     # 定义特效
     def set_effect(self):
@@ -367,6 +403,15 @@ class MainWindow(QMainWindow):
     def on_bar_sliderReleased(self):
         position = self.ui.bar.value()
         self.player.setPosition(position)
+        
+    # 设置中选择下载路径
+    @pyqtSlot()
+    def on_settings_download_path_choose_clicked(self):
+        cur_path = QDir.currentPath()
+        title = '打开'
+        path = QFileDialog.getExistingDirectory(self, title, cur_path, QFileDialog.ShowDirsOnly)
+        
+        self.ui.settings_download_path_edit.setText(path)        
 
     # “下载”按钮按下
     @pyqtSlot()
@@ -376,19 +421,30 @@ class MainWindow(QMainWindow):
             name = self.ui.mname.text()
 
             if not content:
-                title = '错误'
-                warn = '下载出错，请重试。'
-                QMessageBox.warning(self, title, warn)
-
+                QMessageBox.warning(self, '下载失败', '下载失败，请重试。')
                 return
+            
+            path = self.ui.settings_download_path_edit.text()
+            if not path:
+                path = 'musics/'
+                
+            if not path.endswith(('/', '\\', '\\\\')):
+                path = path + '/'
+                
+            file = f'{path}{name}.mp3'
 
-            with open(f'musics/{name}.mp3', 'wb') as f:
-                f.write(content)
+            try:
+                with open(file, 'wb') as f:
+                    f.write(content)
+            except:
+                QMessageBox.warning(self, '下载失败', '下载失败，请检查下载路径是否正确。')                
+                return
 
             self.ui.mdownload.setStyleSheet('''
 #mdownload {background: #ddd;}
 #mdownload:hover {background: #ccc;}
 ''')
+            QMessageBox.information(self, '下载成功', f'下载成功：\n{file}')
 
         # 当前音乐的 URL
         url = self.current_music_url
@@ -405,8 +461,8 @@ class MainWindow(QMainWindow):
     # “播放列表”按钮按下
     @pyqtSlot()
     def on_mplaylist_clicked(self):
-        self.ui.sidebar.setCurrentRow(3)
-        self.ui.stacked_tab.setCurrentIndex(3)
+        self.ui.sidebar.setCurrentRow(4)
+        self.ui.stacked_tab.setCurrentIndex(4)
 
     # 音量调整
     @pyqtSlot(int)
@@ -434,44 +490,6 @@ class MainWindow(QMainWindow):
         for row in range(self.ui.last_playlist.rowCount()):
             datas = self.ui.last_playlist.get_datas(row)
             self.add_media(datas)
-        
-    # 搜索结果添加到列表
-    @pyqtSlot(list)
-    def on_results_view_itemAdd(self, rows):
-        for row in rows:
-            self.add_media(self.ui.results_view.get_datas(row))
-
-    # 播放列表选中歌曲变化
-    @pyqtSlot()
-    def on_playlist_view_itemSelectionChanged(self):
-        playlist_view = self.ui.playlist_view
-        playlist_view_editbar = self.ui.playlist_view_editbar
-        selected_items = playlist_view.selectedItems()
-
-        # “删除”按钮
-        if len(selected_items) != 0:
-            playlist_view_editbar.setRemoveEnabled(True)
-        else:
-            playlist_view_editbar.setRemoveEnabled(False)
-
-        # “上移”、“下移”按钮
-        if len(selected_items) != 1 * 5:
-            playlist_view_editbar.setUpmoveEnabled(False)
-            playlist_view_editbar.setDownmoveEnabled(False)
-
-            return
-
-        row = playlist_view.row(selected_items[0])
-
-        if row != 0:
-            playlist_view_editbar.setUpmoveEnabled(True)
-        else:
-            playlist_view_editbar.setUpmoveEnabled(False)
-
-        if row != playlist_view.rowCount() - 1:
-            playlist_view_editbar.setDownmoveEnabled(True)
-        else:
-            playlist_view_editbar.setDownmoveEnabled(False)
 
     # 删除列表项
     @pyqtSlot()
@@ -480,15 +498,25 @@ class MainWindow(QMainWindow):
         rows = playlist_view.get_selected_rows()
         current_index = self.playlist.currentIndex()
 
+        # 删除行
         for row in rows[::-1]:
             del self.__playlist[row]
             self.playlist.removeMedia(row)
             self.ui.playlist_view.remove_item(row)
             if row < current_index:
                 current_index -= 1
+                
+        if current_index >= self.ui.playlist_view.rowCount():
+            current_index -= 1
+            self.player.stop()
 
+        # 播放
         self.playlist.setCurrentIndex(current_index)
-        self.player.play()
+        self.player.play()        
+        
+        # 刷新
+        if self.ui.playlist_view.rowCount() != 0:
+            self.refresh_songsui(self.__playlist[current_index][1])
 
     # 列表项上移
     @pyqtSlot()
@@ -503,36 +531,41 @@ class MainWindow(QMainWindow):
         self.move_playlist_view_item(index, index + 1)
 
     # 本地歌曲
+    @pyqtSlot(list)
+    def on_playlist_view_editbar_fromLocal(self, datas):
+        for data in datas:
+            self.add_media(data)
+
+    # 删除收藏列表项
     @pyqtSlot()
-    def on_from_local_clicked(self):
-        cur_path = QDir.currentPath()
-        title = '打开'
-        filt = '所有文件(*.*);;mp3文件(*.mp3)'
-        filelist, file_filter = QFileDialog.getOpenFileNames(self, title, cur_path, filt)
+    def on_collections_view_editbar_removed(self):
+        table = self.sender().table
+        rows = table.get_selected_rows()
 
-        for index, url in enumerate(filelist):
-            path = '/'.join(url.replace('\\', '/').split('/')[:-1])
-            file = url.replace('\\', '/').split('/')[-1]
-            file_name = '.'.join(file.split('.')[:-1])
-            suffix = file.split('.')[-1]
-
-            if suffix not in ['mp3']:
-                continue
-
-            song_name = file_name
-            name_split = song_name.split('-')
-            if len(name_split) != 1:
-                song_name = '-'.join(name_split[:-1])
-                artist = name_split[-1]
-            else:
-                artist = '本地'
-            album = '本地'
-
-            img_file, _ = find_lrc_img_in_path(url, 'img')
-
-            datas = [song_name, artist, album, '', *['local:' + url] * 3]
-
-            self.add_media(datas)
+        for row in rows[::-1]:
+            table.remove_item(row)
+        
+    # 收藏列表项上移
+    @pyqtSlot()
+    def on_collections_view_editbar_upmoved(self):
+        table = self.sender().table
+        index = table.get_selected_rows()[0]
+        table.move_item(index, index - 1)
+        
+    # 收藏列表项下移
+    @pyqtSlot()
+    def on_collections_view_editbar_downmoved(self):
+        table = self.sender().table
+        index = table.get_selected_rows()[0]
+        table.move_item(index, index + 1)
+        
+    # 从本地选择
+    @pyqtSlot(list)
+    def on_collections_view_editbar_fromLocal(self, datas):
+        table = self.sender().table
+        for data in datas:
+            table.setRowCount(table.rowCount() + 1)
+            self.insert_songs_datas(table, data, table.rowCount() - 1)
 
 
 # ======== 自定义槽函数 ========
@@ -582,7 +615,39 @@ class MainWindow(QMainWindow):
         datas = widget.get_datas(row)
             
         # 添加音乐
-        index = self.add_media(datas, play=True)
+        self.add_media(datas, play=True)
+        
+    # 搜索结果添加到列表
+    def add_to_playlist(self, rows):
+        sender = self.sender()
+        for row in rows:
+            self.add_media(sender.get_datas(row))
+        
+    # 添加到收藏
+    def collect(self):
+        sender = self.sender()
+        collections_view = self.ui.collections_view
+                
+        # 已收藏
+        collected = []
+        for row in range(collections_view.rowCount()):
+            collected.append(collections_view.get_datas(row)[6])
+        
+        # 选中歌曲
+        datas = []
+        if sender == self.ui.mcollect:
+            datas = [self.__playlist[self.playlist.currentIndex()][1]]
+        else:
+            rows = sender.get_selected_rows()
+            for row in rows:
+                datas.append(sender.get_datas(row))
+                
+        # 收藏
+        for data in datas:
+            if data[6] in collected:
+                continue
+            collections_view.setRowCount(collections_view.rowCount() + 1)
+            self.insert_songs_datas(collections_view, data, collections_view.rowCount() - 1)
 
     # 按下播放/暂停
     def change_player_state(self):
@@ -658,6 +723,8 @@ class MainWindow(QMainWindow):
         # 设置
         helper.settings['window']['close_trayicon'] = self.ui.settings_close_trayicon.isChecked() # 关闭时最小化到托盘
         helper.settings['search']['default_engine'] = self.ui.settings_default_engine.currentData() # 默认搜索引擎
+        helper.settings['download']['path'] = self.ui.settings_download_path_edit.text() # 下载地址
+        
         helper.save_settings() # 保存设置
         
         # 缓存    
@@ -665,10 +732,16 @@ class MainWindow(QMainWindow):
             helper.cache['last_song'] = self.__playlist[self.playlist.currentIndex()][1] # 上次在听
         except:
             helper.cache['last_song'] = []
+            
         try:
             helper.cache['last_playlist'] = list(zip(*self.__playlist))[1]
         except:
             helper.cache['last_playlist'] = []
+            
+        helper.cache['collections'] = []
+        for row in range(self.ui.collections_view.rowCount()):
+            helper.cache['collections'].append(self.ui.collections_view.get_datas(row))
+            
         helper.save_cache() # 保存缓存
 
     # 窗口边缘按下
@@ -737,6 +810,42 @@ class MainWindow(QMainWindow):
     def on_mimage_mouseReleaseEvent(self, event):
         self.ui.sidebar.setCurrentRow(2)
         self.ui.stacked_tab.setCurrentIndex(2)
+        
+    # 歌词滚轮滚动
+    def on_lrcbox_wheelEvent(self, event):
+        def reset():
+            # 如果不等于1，说明还有其他等待事件，也就是三秒内有新的滚轮滚动，那么这次作废
+            if len(self.__scrolling_timers) == 1:
+                self.__is_scrolling = False
+                
+            del self.__scrolling_timers[0]
+        
+        distance = {True: self.lrc_height, False: -self.lrc_height}[event.angleDelta().y() > 0]
+
+        # 计算目标位置
+        y = self.ui.lrcs_view_content.y() # 当前位置
+        to_y = y + distance
+        
+        self.scroll_lrcbox(y, to_y) # 滚动歌词
+        
+        # 计时，三秒内不会滚动歌词
+        timer = QTimer(self)
+        timer.singleShot(3000, reset)
+        self.__scrolling_timers.append(timer)
+        
+    # 歌词双击
+    def on_lrcbox_mouseDoubleClickEvent(self, event):
+        # 因为无法获取触发事件的控件，因此传递到父控件获取坐标来转换
+        event.ignore() # 忽略，传递到父控件
+        
+    # 歌词双击忽略，传到歌词区域双击
+    def on_lrcs_view_content_mouseDoubleClickEvent(self, event):
+        # 获取到是第几个歌词
+        index = event.y() // self.lrc_height
+        
+        # 设置进度，此处不用设置滚动动画，会自动滚动
+        position = int(self.lrcs[index][1])        
+        self.player.setPosition(position)
 
 # ======== 其他方法 ========
 
@@ -874,6 +983,7 @@ class MainWindow(QMainWindow):
     def move_playlist_view_item(self, from_row, to_row):
         self.ui.playlist_view.move_item(from_row, to_row)
 
+        # 播放列表交换
         datas = self.__playlist.pop(from_row)
         self.__playlist.insert(to_row, datas)
 
@@ -882,6 +992,7 @@ class MainWindow(QMainWindow):
         # 播放列表移动项
         self.playlist.moveMedia(from_row, to_row)
 
+        # 选中对的歌曲
         if current_index == from_row:
             self.playlist.setCurrentIndex(to_row)
         elif current_index == to_row:
@@ -910,18 +1021,16 @@ class MainWindow(QMainWindow):
             self.ui.mimage.setPixmap(pixmap) # 控制框小图片
         
         # 获取完大图
-        def img_finished(pixmap):
-            pixmap = pixmap
-            
+        def img_finished(pixmap):            
             self.ui.big_image.setPixmap(pixmap)
             
-            pixmap = pixmap.scaled(self.ui.main_frame.size(), 
-                                   Qt.KeepAspectRatioByExpanding, 
-                                   Qt.SmoothTransformation)
+            # pixmap = pixmap.scaled(self.ui.main_frame.size(), 
+            #                        Qt.KeepAspectRatioByExpanding, 
+            #                        Qt.SmoothTransformation)
             
-            self.window_pale = QPalette() 
-            self.window_pale.setBrush(QPalette.Background, 
-                                      QBrush(pixmap)) 
+            # self.window_pale = QPalette() 
+            # self.window_pale.setBrush(QPalette.Background, 
+            #                           QBrush(pixmap)) 
             #self.ui.main_frame.setStyleSheet('background-color: transparent; border-radius: 3px;')
             #self.ui.main_frame.setAutoFillBackground(True)
             #self.ui.main_frame.setPalette(self.window_pale)
@@ -1016,6 +1125,8 @@ class MainWindow(QMainWindow):
             item.setMaximumSize(QSize(166660, item_h))
             item.setObjectName('lrcbox')
             item.setProperty('lrcbox_index', str(index))
+            item.wheelEvent = self.on_lrcbox_wheelEvent
+            item.mouseDoubleClickEvent = self.on_lrcbox_mouseDoubleClickEvent
             lrcs_view_layout.addWidget(item)
 
             if item.width() > width:
@@ -1054,26 +1165,29 @@ class MainWindow(QMainWindow):
             return
 
         # 歌词没变就退出
-        if index == self.__lrc_index:
-            return
-        
-        # 设置样式
-        self.ui.lrcs_view.setStyleSheet('''
+        if index != self.__lrc_index:        
+            # 设置样式
+            self.ui.lrcs_view.setStyleSheet('''
 #lrcbox[lrcbox_index="%s"] {
     color: #2080f0; 
     font-size: 18px;
 }''' % (index))
-
-        # 计算目标位置
-        y = self.ui.lrcs_view_content.y() # 当前位置
-        to_y = 0 - (index - self.lrcs_top) * self.lrc_height # 目标位置
-
-        # 设置滚动动画
-        self.lrcs_animation.setStartValue(QPoint(0, y)) # 开始坐标
-        self.lrcs_animation.setEndValue(QPoint(0, to_y)) # 结束坐标
-        self.lrcs_animation.start() # 开始动画
+        
+        if not len(self.__scrolling_timers):
+            # 计算目标位置
+            y = self.ui.lrcs_view_content.y() # 当前位置
+            to_y = 0 - (index - self.lrcs_top) * self.lrc_height # 目标位置
+            
+            self.scroll_lrcbox(y, to_y) # 滚动歌词
 
         self.__lrc_index = index # 设置当前歌词序号
+        
+    # 滚动歌词
+    def scroll_lrcbox(self, from_y, to_y):
+        # 设置滚动动画
+        self.lrcs_animation.setStartValue(QPoint(0, from_y)) # 开始坐标
+        self.lrcs_animation.setEndValue(QPoint(0, to_y)) # 结束坐标
+        self.lrcs_animation.start() # 开始动画
         
     def quit_app(self):
         dump(helper.settings, open('settings.json', 'w'), indent=4)
@@ -1151,14 +1265,20 @@ class SubThread(QThread):
     def get_local_pixmap(self, url):
         img_url = find_lrc_img_in_path(url, 'img')[0]
         pixmap = QPixmap(img_url)
-        pixmap = pixmap.scaled(40, 40, Qt.IgnoreAspectRatio, Qt.SmoothTransformation)
+        try:
+            pixmap = pixmap.scaled(40, 40, Qt.IgnoreAspectRatio, Qt.SmoothTransformation)
+        except:
+            pass
 
         self.pixmap_finished.emit(pixmap)
 
     def get_local_img(self, url):
         img_url = find_lrc_img_in_path(url, 'img')[0]
         pixmap = QPixmap(img_url)
-        img = pixmap.scaled(240, 240, Qt.IgnoreAspectRatio, Qt.SmoothTransformation)
+        try:
+            img = pixmap.scaled(240, 240, Qt.IgnoreAspectRatio, Qt.SmoothTransformation)
+        except:
+            pass
 
         self.img_finished.emit(img)
         
@@ -1236,6 +1356,7 @@ class CommonHelper:
         settings = load(open(file, 'r'))
         settings.setdefault('window', {})
         settings.setdefault('search', {})
+        settings.setdefault('download', {})
         self.settings = settings
         
     # 读取缓存
