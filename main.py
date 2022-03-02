@@ -8,7 +8,8 @@ from PyQt5.QtWidgets import (QApplication, QMainWindow, QLabel,
                              QTableWidgetItem,
                              QGraphicsDropShadowEffect, QGraphicsBlurEffect,
                              QFileDialog, QMessageBox,
-                             QSystemTrayIcon, QMenu, QAction, QWidgetAction)
+                             QSystemTrayIcon, QMenu, QAction, QWidgetAction,
+                             QSizePolicy)
 from PyQt5.QtCore import (Qt, QSize, QPoint, QMetaObject, pyqtSignal, pyqtSlot, QThread, QUrl, QTimer, QDir)
 from PyQt5.QtGui import (QIcon, QFont, QImage, QPixmap, QPalette, QBrush)
 from PyQt5.QtMultimedia import (QMediaPlayer, QMediaPlaylist, QMediaContent)
@@ -88,6 +89,7 @@ class MainWindow(QMainWindow):
         # 设置搜索引擎列表模型
         self.ui.input_engine.setView(QListView())
         self.ui.settings_default_engine.setView(QListView())
+        self.ui.settings_lrcs_distance.setView(QListView())
         
         # 搜索栏搜索按钮
         self.ui.input_ok.setIcon(qta.icon('fa.search', color='#888'))
@@ -117,12 +119,20 @@ class MainWindow(QMainWindow):
         self.ui.last_song.horizontalHeader().setVisible(False)
         self.ui.last_song.setRowCount(1) # 一行
         self.ui.last_song.verticalHeader().setDefaultSectionSize(50) # 高50px
+        self.ui.last_song.setMinimumHeight(52)
+        self.ui.last_song.setMaximumHeight(52)
+
         color = '#555'
         self.ui.last_song_play.setIcon(qta.icon('fa.play-circle-o', color=color))
         self.ui.last_playlist_addall.setIcon(qta.icon('fa.plus', color=color))
+
+        self.ui.last_song_fold.setIcon(qta.icon('fa.angle-up', color=color))
+        self.ui.last_song_fold.fold_widget = self.ui.last_song
         
         # 首页“上次播放列表”
         self.ui.last_playlist.verticalHeader().setDefaultSectionSize(50) # 高50px
+        self.ui.last_playlist_fold.setIcon(qta.icon('fa.angle-up', color=color))
+        self.ui.last_playlist_fold.fold_widget = self.ui.last_playlist
         
         # 收藏列表
         self.ui.collections_view.verticalHeader().setDefaultSectionSize(50) # 高50px
@@ -206,12 +216,20 @@ class MainWindow(QMainWindow):
         self.setStyleSheet(''.join(qss))
         
         # 关闭按钮最小化到托盘 
-        close_trayicon = settings['window'].get('close_trayicon', True)
+        close_trayicon = settings['general'].setdefault('close_trayicon', True)
         self.ui.settings_close_trayicon.setChecked(close_trayicon)
         QApplication.setQuitOnLastWindowClosed(not close_trayicon)
         
         # 下载地址
-        self.ui.settings_download_path_edit.setText(settings['download'].get('path', ''))
+        self.ui.settings_download_path_edit.setText(settings['download'].setdefault('path', ''))
+
+        # 歌词高度
+        heights = [['小', 22], ['中', 30], ['大', 37]]
+        index = helper.settings['lrcs'].setdefault('distance', 1)
+        for s, v in heights:
+            self.ui.settings_lrcs_distance.addItem(s, v)
+        self.ui.settings_lrcs_distance.setCurrentIndex(index)
+        self.lrc_height = heights[index][1]
 
     # 组件槽连接
     def setup_slots(self): 
@@ -227,6 +245,9 @@ class MainWindow(QMainWindow):
 
         self.ui.mpause.clicked.connect(self.change_player_state) # 界面点击播放/暂停
         self.menu_widget.menu_pause.clicked.connect(self.change_player_state) # 托盘点击播放/暂停
+
+        self.ui.last_song_fold.clicked.connect(self.on_fold_clicked) # 收起/展开上次在听
+        self.ui.last_playlist_fold.clicked.connect(self.on_fold_clicked) # 收起/展开上次播放列表
 
         self.ui.results_view.itemPlay.connect(self.music_selected) # 选中搜索结果歌曲
         self.ui.playlist_view.itemPlay.connect(self.music_selected) # 选中播放列表歌曲
@@ -255,19 +276,21 @@ class MainWindow(QMainWindow):
         self.ui.last_playlist.itemAdd.connect(self.add_to_playlist)
         self.ui.results_view.itemAdd.connect(self.add_to_playlist)
         self.ui.collections_view.itemAdd.connect(self.add_to_playlist)
+        self.ui.playlist_view.itemAdd.connect(self.add_to_playlist)
         
         # 收藏歌曲
         self.ui.last_song.itemCollect.connect(self.collect)
         self.ui.last_playlist.itemCollect.connect(self.collect)
         self.ui.results_view.itemCollect.connect(self.collect)
+        self.ui.collections_view.itemCollect.connect(self.collect)
         self.ui.playlist_view.itemCollect.connect(self.collect)
         self.ui.mcollect.clicked.connect(self.collect) # 控制框点击收藏
 
     # 组件事件连接        
     def setup_events(self):
-        self.ui.main_frame.mousePressEvent = self.on_main_frame_mousePressEvent # 窗口边缘按下
-        self.ui.main_frame.mouseMoveEvent = self.on_main_frame_mouseMoveEvent # 调整窗口大小
-        self.ui.main_frame.mouseReleaseEvent = self.on_main_frame_mouseReleaseEvent # 窗口边缘松开
+        self.ui.main.mousePressEvent = self.on_main_mousePressEvent # 窗口边缘按下
+        self.ui.main.mouseMoveEvent = self.on_main_mouseMoveEvent # 调整窗口大小
+        self.ui.main.mouseReleaseEvent = self.on_main_mouseReleaseEvent # 窗口边缘松开
         
         self.ui.logo.mousePressEvent = self.on_logo_mousePressEvent # logo 按下
         self.ui.logo.mouseMoveEvent = self.on_logo_mouseMoveEvent  # logo 拖动
@@ -285,7 +308,7 @@ class MainWindow(QMainWindow):
         self.effect_shadow.setColor(Qt.black) # 阴影颜色
         
         self.effect_blur = QGraphicsBlurEffect(self)
-        self.effect_blur.setBlurRadius(40)
+        self.effect_blur.setBlurRadius(100)
     
     # 设置窗口阴影
     def set_shadow(self):
@@ -365,8 +388,8 @@ class MainWindow(QMainWindow):
     # 标题栏“更多”按钮
     @pyqtSlot()
     def on_settings_clicked(self):
-        self.ui.sidebar.setCurrentRow(4)
-        self.ui.stacked_tab.setCurrentIndex(4)
+        self.ui.sidebar.setCurrentRow(5)
+        self.ui.stacked_tab.setCurrentIndex(5)
 
     # 关闭窗口
     @pyqtSlot()
@@ -450,6 +473,7 @@ class MainWindow(QMainWindow):
         url = self.current_music_url
         
         if not url:
+            QMessageBox.warning(self, '无歌曲', '当前无播放歌曲。')
             return
         
         # 获取音乐
@@ -478,6 +502,11 @@ class MainWindow(QMainWindow):
             self.ui.mvolume.setToolTip('音量 0') 
         else:
             self.ui.mvolume.setToolTip(f'音量 {value}')  
+
+    # 静音
+    @pyqtSlot(bool)
+    def on_volume_widget_mutedChanged(self, is_muted):
+        self.player.setMuted(is_muted)
             
     # “上次在听”播放
     @pyqtSlot()
@@ -579,17 +608,14 @@ class MainWindow(QMainWindow):
     def on_mvolume_clicked(self):
         sender = self.sender()
         pos = sender.pos()
-        global_pos = self.mapToGlobal(pos)
+        global_pos = self.ui.main.mapToGlobal(pos)
 
         self.volume_controler_pop(global_pos)
 
-    # 界面音量按钮点击
+    # 托盘菜单音量按钮点击
     def on_menu_volume_clicked(self):
         sender = self.sender()
         pos = sender.pos()
-        x = pos.x() - 8
-        y = pos.y() - 8
-        pos = QPoint(x, y)
         global_pos = self.menu_widget.mapToGlobal(pos)
 
         self.volume_controler_pop(global_pos)
@@ -606,6 +632,42 @@ class MainWindow(QMainWindow):
 
             # 刷新界面
             QApplication.processEvents()
+        
+    # 搜索
+    def search(self):
+        def result_finished(result):
+            if not result:
+                title = '错误'
+                warn = '搜索出错，请重试。'
+                QMessageBox.warning(self, title, warn)   
+
+                return
+                            
+            # 插入搜索结果
+            self.insert_search_result(result)
+
+        keyword = self.ui.input_entry.text()
+        # 是否含有非空白符
+        if search(r'\S', keyword) is None:
+            self.ui.results_view.clearContents()
+            return
+
+        # 切换引擎
+        engine = self.ui.input_engine.currentData()
+        helper.engine = engine
+
+        # 清除所有歌
+        self.ui.results_view.clearContents()
+        
+        # 选中搜索结果列表
+        self.ui.sidebar.setCurrentRow(1)
+        self.ui.stacked_tab.setCurrentIndex(1)
+
+        # 搜索
+        result_getter = SubThread(task=SubThread.get_result, keyword=keyword)
+        result_getter.result_finished.connect(result_finished)
+        self.result_getters.append(result_getter)
+        result_getter.start()
 
     # 选中歌曲
     def music_selected(self, row):
@@ -620,6 +682,10 @@ class MainWindow(QMainWindow):
     # 搜索结果添加到列表
     def add_to_playlist(self, rows):
         sender = self.sender()
+        if sender == self.ui.playlist_view:
+            QMessageBox.information(self, '已添加', '歌曲已在播放列表中。')
+            return
+            
         for row in rows:
             self.add_media(sender.get_datas(row))
         
@@ -636,18 +702,30 @@ class MainWindow(QMainWindow):
         # 选中歌曲
         datas = []
         if sender == self.ui.mcollect:
-            datas = [self.__playlist[self.playlist.currentIndex()][1]]
+            if self.__playlist:
+                datas = [self.__playlist[self.playlist.currentIndex()][1]]
+            else:
+                QMessageBox.warning(self, '无歌曲', '当前无播放歌曲。')
+                return
         else:
             rows = sender.get_selected_rows()
             for row in rows:
                 datas.append(sender.get_datas(row))
                 
         # 收藏
+        collections = []
         for data in datas:
+            # 是否已收藏过
             if data[6] in collected:
                 continue
             collections_view.setRowCount(collections_view.rowCount() + 1)
             self.insert_songs_datas(collections_view, data, collections_view.rowCount() - 1)
+            collections.append(f'{data[0]} - {data[1]}')
+
+        if collections:
+            QMessageBox.information(self, '已收藏', '已收藏！\n' + '\n'.join(collections))
+        else:
+            QMessageBox.information(self, '已收藏', '歌曲已在收藏列表中。')
 
     # 按下播放/暂停
     def change_player_state(self):
@@ -716,14 +794,26 @@ class MainWindow(QMainWindow):
         # 刷新歌曲信息显示
         self.refresh_songsui(datas)
 
+    # 上次在听/上次播放列表收起
+    def on_fold_clicked(self):
+        sender = self.sender()
+        if sender.fold_widget.isVisible():
+            sender.setIcon(qta.icon('fa.angle-down', color='#555'))
+            sender.setToolTip('展开')
+        else:
+            sender.setIcon(qta.icon('fa.angle-up', color='#555'))
+            sender.setToolTip('收起')
+        sender.fold_widget.setVisible(not sender.fold_widget.isVisible())
+
 # ======== 组件事件 ========
 
     # 窗口关闭事件
     def closeEvent(self, event):
         # 设置
-        helper.settings['window']['close_trayicon'] = self.ui.settings_close_trayicon.isChecked() # 关闭时最小化到托盘
-        helper.settings['search']['default_engine'] = self.ui.settings_default_engine.currentData() # 默认搜索引擎
+        helper.settings['general']['close_trayicon'] = self.ui.settings_close_trayicon.isChecked() # 关闭时最小化到托盘
+        helper.settings['general']['default_engine'] = self.ui.settings_default_engine.currentData() # 默认搜索引擎
         helper.settings['download']['path'] = self.ui.settings_download_path_edit.text() # 下载地址
+        helper.settings['lrcs']['distance'] = self.ui.settings_lrcs_distance.currentIndex() # 歌词高度
         
         helper.save_settings() # 保存设置
         
@@ -745,7 +835,7 @@ class MainWindow(QMainWindow):
         helper.save_cache() # 保存缓存
 
     # 窗口边缘按下
-    def on_main_frame_mousePressEvent(self, event):
+    def on_main_mousePressEvent(self, event):
         if self.isMaximized() or self.isFullScreen():
             return
 
@@ -753,12 +843,12 @@ class MainWindow(QMainWindow):
             self.__width = self.width()
             self.__height = self.height()
 
-            self.__is_resizing = (event.x() > self.ui.main_frame.width() - 5) and (event.y() > self.ui.main_frame.height() - 5)
+            self.__is_resizing = (event.x() > self.ui.main.width() - 7) and (event.y() > self.ui.main.height() - 7)
 
             self.__last_pos = event.pos()
 
     # 调整窗口大小
-    def on_main_frame_mouseMoveEvent(self, event):
+    def on_main_mouseMoveEvent(self, event):
         is_resizing = self.__is_resizing
         
         # 正在调整则改变窗口大小，否则设置光标样式
@@ -776,8 +866,8 @@ class MainWindow(QMainWindow):
             self.__last_pos = QPoint(x, y)  
 
         else:
-            is_right = event.x() > self.ui.main_frame.width() - 5
-            is_bottom = event.y() > self.ui.main_frame.height() - 5
+            is_right = event.x() > self.ui.main.width() - 7
+            is_bottom = event.y() > self.ui.main.height() - 7
 
             # 光标样式
             if is_right and is_bottom: # 右下角
@@ -785,12 +875,12 @@ class MainWindow(QMainWindow):
             else:
                 cursor = Qt.ArrowCursor 
 
-            self.ui.main_frame.setCursor(cursor)
+            self.ui.main.setCursor(cursor)
 
     # 窗口边缘松开
-    def on_main_frame_mouseReleaseEvent(self, event):
+    def on_main_mouseReleaseEvent(self, event):
         self.__is_resizing = False
-        self.ui.main_frame.setCursor(Qt.ArrowCursor)
+        self.ui.main.setCursor(Qt.ArrowCursor)
     
     # logo 按下
     def on_logo_mousePressEvent(self, event):
@@ -811,6 +901,20 @@ class MainWindow(QMainWindow):
         self.ui.sidebar.setCurrentRow(2)
         self.ui.stacked_tab.setCurrentIndex(2)
         
+        # self.ui.side.setVisible(not self.ui.sidebar.isVisible())
+            
+        # pixmap = self.ui.big_image.pixmap().scaled(self.ui.main_frame.size(), 
+        #                         Qt.KeepAspectRatioByExpanding, 
+        #                         Qt.SmoothTransformation)
+        
+        # self.window_pale = QPalette() 
+        # self.window_pale.setBrush(QPalette.Background, 
+        #                             QBrush(pixmap)) 
+        # self.ui.main.setAutoFillBackground(True)
+        # self.ui.main.setPalette(self.window_pale)
+        # self.setGraphicsEffect(self.effect_blur)
+        # self.ui.main_frame.setGraphicsEffect(QGraphicsBlurEffect(self))
+        
     # 歌词滚轮滚动
     def on_lrcbox_wheelEvent(self, event):
         def reset():
@@ -819,8 +923,8 @@ class MainWindow(QMainWindow):
                 self.__is_scrolling = False
                 
             del self.__scrolling_timers[0]
-        
-        distance = {True: self.lrc_height, False: -self.lrc_height}[event.angleDelta().y() > 0]
+
+        distance = int(event.angleDelta().y() / 120 * self.lrc_height)
 
         # 计算目标位置
         y = self.ui.lrcs_view_content.y() # 当前位置
@@ -851,45 +955,9 @@ class MainWindow(QMainWindow):
 
     # 弹出改变音量菜单
     def volume_controler_pop(self, pos):
-        x = pos.x() - 2
-        y = pos.y() - 250
+        x = pos.x() - 10
+        y = pos.y() - 258
         self.volume_menu.exec_(QPoint(x, y))
-        
-    # 搜索
-    def search(self):
-        def result_finished(result):
-            if not result:
-                title = '错误'
-                warn = '搜索出错，请重试。'
-                QMessageBox.warning(self, title, warn)   
-
-                return
-                            
-            # 插入搜索结果
-            self.insert_search_result(result)
-
-        keyword = self.ui.input_entry.text()
-        # 是否含有非空白符
-        if search(r'\S', keyword) is None:
-            self.ui.results_view.clearContents()
-            return
-
-        # 切换引擎
-        engine = self.ui.input_engine.currentData()
-        helper.engine = engine
-
-        # 清除所有歌
-        self.ui.results_view.clearContents()
-        
-        # 选中搜索结果列表
-        self.ui.sidebar.setCurrentRow(1)
-        self.ui.stacked_tab.setCurrentIndex(1)
-
-        # 搜索
-        result_getter = SubThread(task=SubThread.get_result, keyword=keyword)
-        result_getter.result_finished.connect(result_finished)
-        self.result_getters.append(result_getter)
-        result_getter.start()
 
     # 插入搜索结果
     def insert_search_result(self, datas):
@@ -1024,19 +1092,6 @@ class MainWindow(QMainWindow):
         def img_finished(pixmap):            
             self.ui.big_image.setPixmap(pixmap)
             
-            # pixmap = pixmap.scaled(self.ui.main_frame.size(), 
-            #                        Qt.KeepAspectRatioByExpanding, 
-            #                        Qt.SmoothTransformation)
-            
-            # self.window_pale = QPalette() 
-            # self.window_pale.setBrush(QPalette.Background, 
-            #                           QBrush(pixmap)) 
-            #self.ui.main_frame.setStyleSheet('background-color: transparent; border-radius: 3px;')
-            #self.ui.main_frame.setAutoFillBackground(True)
-            #self.ui.main_frame.setPalette(self.window_pale)
-            #self.setGraphicsEffect(self.effect_blur)
-            #self.ui.main_frame.setGraphicsEffect(QGraphicsBlurEffect(self))
-            
         # 获取完歌词
         def lrcs_finished(lrcs):
             self.lrcs = lrcs
@@ -1131,7 +1186,8 @@ class MainWindow(QMainWindow):
 
             if item.width() > width:
                 width = item.width()
-            height = height + item_h
+            
+        height = len(lrcs) * item_h
 
         # 设置歌词区域大小和位置
         self.ui.lrcs_view_content.setGeometry(0, item_h * self.lrcs_top, width, height)
@@ -1221,7 +1277,10 @@ class SubThread(QThread):
 
     # 获取搜索结果
     def get_result(self, keyword):
-        datas = helper.engine.search(keyword)
+        try:
+            datas = helper.engine.search(keyword)
+        except:
+            datas = []
 
         self.result_finished.emit(datas)
 
@@ -1354,14 +1413,18 @@ class CommonHelper:
     # 读取设置
     def read_settings(self, file):
         settings = load(open(file, 'r'))
-        settings.setdefault('window', {})
-        settings.setdefault('search', {})
+        settings.setdefault('general', {})
+        settings.setdefault('lrcs', {})
         settings.setdefault('download', {})
         self.settings = settings
         
     # 读取缓存
     def read_cache(self):
-        self.cache = load(open('app/cache.json', 'r'))
+        cache = load(open('app/cache.json', 'r'))
+        cache.setdefault('last_song', [])
+        cache.setdefault('last_playlist', [])
+        cache.setdefault('collections', [])
+        self.cache = cache
 
     # 设置搜索引擎
     def set_engine(self):
@@ -1370,7 +1433,7 @@ class CommonHelper:
             if s.startswith('Engine'):
                 engine = eval(f'mapi.{s}')
                 self.engines[engine.sign] = engine
-                if engine.sign == self.settings['search'].get('default_engine', 'kuwo'):
+                if engine.sign == self.settings['general'].setdefault('default_engine', 'kuwo'):
                     self.engine = engine
                     self.default_engine = engine
                     
@@ -1382,6 +1445,7 @@ class CommonHelper:
     def save_cache(self):
         dump(self.cache, open('app/cache.json', 'w'), indent=4)
 
+# 分离sign
 def split_sign(sign):
     engine, *datas = sign.split(':')
     data = ':'.join(datas)
