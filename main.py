@@ -3,7 +3,7 @@ from os import walk
 from re import search, fullmatch, I
 from json import load, dump
 
-from PyQt5.QtWidgets import (QApplication, QMainWindow, QLabel, 
+from PyQt5.QtWidgets import (QApplication, QMainWindow, QLabel, QSlider,
                              QListView, 
                              QTableWidgetItem,
                              QGraphicsDropShadowEffect, QGraphicsBlurEffect,
@@ -296,6 +296,8 @@ class MainWindow(QMainWindow):
         self.ui.logo.mouseMoveEvent = self.on_logo_mouseMoveEvent  # logo 拖动
         self.ui.logo.mouseReleaseEvent = self.on_logo_mouseReleaseEvent # logo 松开
         
+        self.ui.bar.mousePressEvent = self.on_bar_mousePressEvent # 进度条点击跳转
+        
         self.ui.mimage.mouseReleaseEvent = self.on_mimage_mouseReleaseEvent # 小图片按下
         
         self.ui.lrcs_view_content.mouseDoubleClickEvent = self.on_lrcs_view_content_mouseDoubleClickEvent # 歌词容器双击
@@ -425,7 +427,7 @@ class MainWindow(QMainWindow):
     @pyqtSlot()
     def on_bar_sliderReleased(self):
         position = self.ui.bar.value()
-        self.player.setPosition(position)
+        self.player.setPosition(position)        
         
     # 设置中选择下载路径
     @pyqtSlot()
@@ -895,6 +897,15 @@ class MainWindow(QMainWindow):
     # logo 松开
     def on_logo_mouseReleaseEvent(self, event):
         self.__is_moving = False # 结束
+        
+    # 点击进度条跳转
+    def on_bar_mousePressEvent(self, event):        
+        position = int(self.ui.bar.maximum() * (event.x() / self.ui.bar.width()))
+        
+        self.ui.bar.setValue(position)
+        
+        QSlider.mousePressEvent(self.ui.bar, event)
+        self.ui.bar.sliderPressed.emit()
 
     # 小图片按下
     def on_mimage_mouseReleaseEvent(self, event):
@@ -964,7 +975,7 @@ class MainWindow(QMainWindow):
         results_view = self.ui.results_view  
 
         # 设置行数
-        results_view.setRowCount(20)
+        results_view.setRowCount(len(datas))
 
         for index, data in enumerate(datas[:21]):
             self.insert_songs_datas(results_view, data, index)
@@ -1380,6 +1391,8 @@ class SubThread(QThread):
         except:
             return
 
+        print(1)
+
         self.music_content_finished.emit(content)
 
 # 帮助
@@ -1397,7 +1410,7 @@ class CommonHelper:
         self.read_qss('qss/buttons.qss')
 
         # 读取设置
-        self.read_settings('app/settings.json')
+        self.read_settings()
         
         # 读取缓存
         self.read_cache()
@@ -1411,8 +1424,13 @@ class CommonHelper:
             self.qss.append(f.read())
 
     # 读取设置
-    def read_settings(self, file):
-        settings = load(open(file, 'r'))
+    def read_settings(self):
+        try:
+            settings = load(open('app/settings.json', 'r'))
+        except:
+            with open('app/settings.json', 'w') as f:
+                f.write('{}')
+            settings = {}
         settings.setdefault('general', {})
         settings.setdefault('lrcs', {})
         settings.setdefault('download', {})
@@ -1420,7 +1438,12 @@ class CommonHelper:
         
     # 读取缓存
     def read_cache(self):
-        cache = load(open('app/cache.json', 'r'))
+        try:
+            cache = load(open('app/cache.json', 'r'))
+        except:
+            with open('app/cache.json', 'w') as f:
+                f.write('{}')
+            cache = {}
         cache.setdefault('last_song', [])
         cache.setdefault('last_playlist', [])
         cache.setdefault('collections', [])
