@@ -7,7 +7,7 @@
 <a href="./README_en.md">English Description</a> 
 </p>
 <p align="center">
-	<img src="https://img.shields.io/badge/HiMusic-v0.1.3-important.svg" title="HiMusic" />
+	<img src="https://img.shields.io/badge/HiMusic-v0.1.4-important.svg" title="HiMusic" />
 	<img src="https://img.shields.io/badge/Python-3.8+-blue.svg" title="Python" />
 	<img src="https://img.shields.io/badge/PyQt-5.0+-brightgreen.svg" title="PyQt5" />
 </p>
