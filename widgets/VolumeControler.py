@@ -36,8 +36,8 @@ class QVolumeControler(QWidget):
         self.volume_bar.setObjectName("volume_bar")
         self.verticalLayout_8.addWidget(self.volume_bar)
         self.volume_mute = QPushButton(self)
-        self.volume_mute.setMinimumSize(QSize(22, 22))
-        self.volume_mute.setMaximumSize(QSize(22, 22))
+        self.volume_mute.setMinimumSize(QSize(24, 24))
+        self.volume_mute.setMaximumSize(QSize(24, 24))
         self.volume_mute.setProperty('is_toolbtn', True)
         self.volume_mute.setIcon(qta.icon('fa.volume-up', color='#555'))
         self.volume_mute.setToolTip('静音')
@@ -62,7 +62,10 @@ class QVolumeControler(QWidget):
         # 设置音量信息
         self.set_volume_data()
             
-        self.volumeChanged.emit(self.volume_bar.value()) 
+        if self.is_muted:
+            self.volumeChanged.emit(0)
+        else:
+            self.volumeChanged.emit(self.volume_bar.value()) 
         self.mutedChanged.emit(self.is_muted)
 
 # ======== 自定义槽函数 ========

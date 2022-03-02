@@ -99,8 +99,8 @@ class QSongsTableWidget(QTableWidget):
 
     # 重绘
     def paintEvent(self, event) -> None:
-        self.setColumnWidth(3, self.width() / 5) 
-        self.setColumnWidth(4, self.width() / 5)       
+        self.setColumnWidth(3, self.width() // 5) 
+        self.setColumnWidth(4, self.width() // 5)       
         
         return QTableWidget.paintEvent(self, event)
 
