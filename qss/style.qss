@@ -1,6 +1,7 @@
 * {
     font-family: "Microsoft Yahei";
     outline: 0px;
+    font-size: 14px;
 }
 
 /*按钮*/
@@ -15,11 +16,20 @@ QComboBox QAbstractItemView {
 QComboBox QAbstractItemView::item {
     color: #333333;
     height: 30px;
+    text-indent: 5;
     /*padding-left: 8px;*/
 }
 QComboBox QAbstractItemView::item:selected {
     color: black;
     background-color: #d9d9d9;
+}
+QComboBox::drop-down {
+    border: none;
+    width: 20px;
+    margin: 0 5px;
+}
+QComboBox::down-arrow {
+    image: url(imgs/down-arrow.svg);
 }
 
 /*歌曲列表*/
@@ -55,6 +65,31 @@ QSlider::handle:hover {
     background-color: #3090f0;
 }
 
+/*滚动条*/
+QScrollBar {
+    width: 7px;
+    padding: 0;
+}
+QScrollBar::handle {
+    border-radius: 3px;
+    background-color: #d0d0d0;
+}
+QScrollBar::handle:hover {
+    background-color: #aaa;
+}
+QScrollBar::handle:pressed {
+    background-color: #888;
+}
+QScrollBar::add-line:hover, QScrollBar::sub-line:hover {
+    background-color: #d2d2d2;
+}
+QScrollBar::add-line, QScrollBar::sub-line {
+    height: 0;
+}
+QScrollBar, QScrollBar::add-page, QScrollBar::sub-page {
+    background-color: transparent;
+}
+
 /*菜单*/
 QMenu {
     border: 1px solid #ccc;
@@ -65,7 +100,7 @@ QMenu::icon {
     padding-left: 20px;
 }
 QMenu::item {
-    padding: 6px 20px;
+    padding: 5px 20px;
     color: black;
 }
 QMenu::item:selected {
@@ -77,6 +112,11 @@ QMenu::item:pressed {
 }
 QMenu::separator {
     padding: 5px 0;
+}
+
+/*提示*/
+QToolTip {
+    font-size: 12px;
 }
 
 #main_frame {
@@ -121,11 +161,12 @@ QMenu::separator {
 #input_engine, #input_entry, #input_ok {
     background-color: white;
     border: 1px solid #ddd;
+    font-size: 12px;
 }
 #input_engine {
     color: #666;
     border-right: none;
-    padding-left: 16px;
+    padding: 0 0 0 16px;
     border-top-left-radius: 15px;
     border-bottom-left-radius: 15px;
 }
@@ -134,9 +175,6 @@ QMenu::separator {
 }
 #input_engine::checked {
     background-color: #f1f1f1;
-}
-#input_engine::drop-down {
-    width: 0;
 }
 #input_entry {
     border-right: none;
@@ -173,7 +211,6 @@ QMenu::separator {
 }
 #position_label {
     color: #333;
-    font-size: 14px;
 }
 
 #stacked_tab {
@@ -182,7 +219,6 @@ QMenu::separator {
 
 /*首页*/
 #home_tab>QLabel {
-    padding-top: 9px;
     font-size: 20px;
     font-weight: bold;
 }
@@ -195,7 +231,6 @@ QMenu::separator {
     font-size: 20px;
 }
 #big_martist {
-    font-size: 14px;
     color: #666;
 }
 
@@ -216,10 +251,9 @@ QMenu::separator {
 #settings_contents, #settings_area {
     background-color: transparent;
 }
-#settings_contents>QLabel {
+#settings_contents > QLabel {
     border: 1px solid #ddd;
     border-width: 0 0 1px 0;
-    margin-top: 20px;
     padding-bottom: 9px;
     font-size: 20px;
     font-weight: bold;
@@ -228,7 +262,6 @@ QMenu::separator {
     border-bottom: 1px solid #ddd;
 }
 #settings_contents QWidget QLabel {
-    font-size: 14px;
     padding: 5px 0; 
 }
 #settings_contents QPushButton, 
@@ -238,16 +271,22 @@ QMenu::separator {
     border-radius: 3px;
     background-color: transparent;
 }
+#settings_contents QComboBox {
+    padding: 4px 0 4px 11px;
+}
+#settings_contents QPushButton {
+    padding: 5px 9px;
+}
+#settings_contents QLineEdit {
+    padding: 4px 5px;
+}
 #settings_contents QPushButton:hover, 
 #settings_contents QComboBox:hover,
 #settings_contents QLineEdit:hover {
     border: 1px solid #777;
 }
-#settings_contents QComboBox {
-    padding: 4px 11px;
-}
-#settings_contents QLineEdit {
-    padding-left: 5px;
+#settings_contents QLineEdit:focus {
+    border-width: 2px;
 }
 #settings_contents QCheckBox {
     height: 20px;

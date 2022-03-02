@@ -5,6 +5,7 @@
 	background-color: #ddd;
 }
 [is_editbtn=true] {
+	font-size: 12px;
     border: 1px solid #2080f0;
     border-radius: 13px;
     background-color: #f7f8f8;
