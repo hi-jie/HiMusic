@@ -264,7 +264,7 @@ class EngineKugou:
     }
 
     @staticmethod
-    #@error_getter
+    @error_getter
     def search(kw: str):
         url = EngineKugou.search_url
         # params = EngineKugou.search_params
@@ -272,7 +272,6 @@ class EngineKugou:
         url = url.format(kw)
 
         response = requests.get(url).text
-        print(response)
         
         json = loads(match('.*?({.*})', response).group(1))
         datas = json['data']['lists']
@@ -280,8 +279,8 @@ class EngineKugou:
         sign = EngineKugou.sign + ':'
             
         result = [[data['SongName'].replace('<em>', '').replace('</em>', ''),
-                   data['SingerName'],
-                   data['AlbumName'],
+                   data['SingerName'].replace('<em>', '').replace('</em>', ''),
+                   data['AlbumName'].replace('<em>', '').replace('</em>', ''),
                    sec_to_str(data['Duration']),
                    *[sign + data['FileHash'] + ',' + data['AlbumID']] * 3]
                   for data in datas]
@@ -322,7 +321,6 @@ class EngineKugou:
         return format_lrc(lrc_str)
 
     @staticmethod
-    @error_getter
     def get_music_data(data):
         #data = sign.split(':')[1]
         hash_, album_id = data.split(',')
@@ -336,6 +334,133 @@ class EngineKugou:
         datas = json['data']
 
         return datas
+
+'''
+class EngineCloud(Base):
+    name = '网易云音乐'
+    sign = 'cloud'
+
+    url = 'http://www.lxytv.top/api.php?callback=jQuery1113020694660004537435_1646205326739'
+    search_datas = {
+        'types': 'search',
+        'count': 20,
+        'source': 'netease',
+        'pages': 1,
+        'name': ''
+    }
+
+    from_datas = {
+        'types': 'url',
+        'id': '',
+        'source': 'netease'
+    }
+
+    pic_datas = {
+        'types': 'pic',
+        'id': '',
+        'source': 'netease'
+    }
+
+    content_datas = {
+        'types': 'url',
+        'id': '',
+        'source': 'netease'
+    }
+
+    lrc_datas = {
+        'types': 'lyric',
+        'id': '',
+        'source': 'netease'
+    }
+
+    headers = {
+        'Accept': '*/*',
+        'Accept-Encoding': 'identity;q=1, *;q=0',
+        'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6',
+        'Connection': 'keep-alive',
+        'Host': 'm8.music.126.net',
+        'Range': 'bytes=0-',
+        'Referer': 'http://www.lxytv.top/',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36 Edg/98.0.1108.62'
+    }
+
+    @staticmethod
+    #@error_getter
+    def search(kw: str):
+        url = EngineCloud.url
+        datas = EngineCloud.search_datas
+        datas['name'] = kw
+
+        response = requests.post(url, data=datas).text
+        datas = loads(match('.*?\((\[.*\])\)', response).group(1))
+
+        sign = EngineCloud.sign + ':'
+
+        result = [[data['name'],
+                   ' '.join(data['artist']),
+                   data['album'],
+                   '',
+                   sign + data['pic_id'],
+                   sign + data['pic_id'],
+                   sign + str(data['id'])]
+                  for data in datas]
+
+        return result
+
+    @staticmethod
+    #@error_getter
+    def get_music_url(id):
+        url = EngineCloud.url
+        datas = EngineCloud.from_datas
+        datas['id'] = id
+
+        response = requests.post(url, data=datas).text
+        datas = loads(match('.*?\((.*)\)', response).group(1))
+
+        content_url = datas['url']
+
+        return content_url
+
+    @staticmethod
+    #@error_getter
+    def get_pic(id):
+        url = EngineCloud.url
+        datas = EngineCloud.pic_datas
+        datas['id'] = id
+
+        response = requests.post(url, data=datas, timeout=0.1).text
+        datas = loads(match('.*?\((.*)\)', response).group(1))
+
+        pic_url = datas['url']
+
+        pic_content = requests.get(pic_url, timeout=1).content
+
+        return pic_content
+
+    @staticmethod
+    #@error_getter
+    def get_music_content(url):
+        #headers = EngineCloud.headers
+        content = requests.get(url).content
+
+        return content
+
+    @staticmethod
+    #@error_getter
+    def get_music_lrc(id):
+        url = EngineCloud.url
+        datas = EngineCloud.lrc_datas
+        datas['id'] = id
+
+        response = requests.post(url, data=datas).text
+        datas = loads(match('.*?\((.*)\)', response).group(1))
+
+        lrcs = datas['lyric']
+
+        result = format_lrc(lrcs)
+
+        return result
+
 
 def sec_to_str(sec):
     minute = sec // 60
@@ -361,7 +486,7 @@ def format_lrc(lrc_str: str):
             result.append([word, str_to_msec(time)])
 
     return sorted(result, key=lambda x: x[1])
-
+'''
 '''
 class EngineQQ:
     name = 'QQ音乐'
@@ -371,5 +496,3 @@ class EngineCloud:
     name = '网易云音乐'
     sign = 'cloud'
 '''
-if __name__ == '__main__':
-    EngineKugou.search('浮夸')
