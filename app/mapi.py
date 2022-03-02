@@ -460,7 +460,7 @@ class EngineCloud(Base):
         result = format_lrc(lrcs)
 
         return result
-
+'''
 
 def sec_to_str(sec):
     minute = sec // 60
@@ -486,7 +486,7 @@ def format_lrc(lrc_str: str):
             result.append([word, str_to_msec(time)])
 
     return sorted(result, key=lambda x: x[1])
-'''
+
 '''
 class EngineQQ:
     name = 'QQ音乐'
