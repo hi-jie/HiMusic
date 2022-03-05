@@ -253,7 +253,7 @@ class Ui_MainWindow(object):
         self.lrcs_tab = QtWidgets.QWidget()
         self.lrcs_tab.setObjectName("lrcs_tab")
         self.horizontalLayout_10 = QtWidgets.QHBoxLayout(self.lrcs_tab)
-        self.horizontalLayout_10.setContentsMargins(40, 40, 27, 40)
+        self.horizontalLayout_10.setContentsMargins(40, 40, 40, 40)
         self.horizontalLayout_10.setSpacing(40)
         self.horizontalLayout_10.setObjectName("horizontalLayout_10")
         self.big_image = QtWidgets.QLabel(self.lrcs_tab)
