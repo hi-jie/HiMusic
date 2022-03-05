@@ -47,7 +47,7 @@ class Base:
 
 class EngineKuwo(Base):
     name = '酷我音乐'
-    sign = 'kuwo'
+    pre = 'kuwo'
 
     search_url = 'http://www.kuwo.cn/api/www/search/searchMusicBykeyWord'
     search_params = {
@@ -111,15 +111,15 @@ class EngineKuwo(Base):
         if not datas:
             raise GetError.GetError('获取出错，请重试。')
 
-        sign = EngineKuwo.sign + ':'
+        pre = EngineKuwo.pre + ':'
 
         result = [[r.get('name', ''),
                    r.get('artist', ''),
                    r.get('album', ''),
                    r.get('songTimeMinutes', ''),
-                   sign + r.get('pic', ''),
-                   sign + r.get('pic120', ''),
-                   sign + str(r.get('rid', ''))]
+                   pre + r.get('pic', ''),
+                   pre + r.get('pic120', ''),
+                   pre + str(r.get('rid', ''))]
                   for r in datas]
 
         return result
@@ -222,7 +222,7 @@ class EngineKuwo(Base):
 
 class EngineKugou:
     name = '酷狗音乐'
-    sign = 'kugou'
+    pre = 'kugou'
     '''
     search_url = 'https://complexsearch.kugou.com/v2/search/song'
     search_params = {
@@ -276,13 +276,13 @@ class EngineKugou:
         json = loads(match('.*?({.*})', response).group(1))
         datas = json['data']['lists']
 
-        sign = EngineKugou.sign + ':'
+        pre = EngineKugou.pre + ':'
             
         result = [[data['SongName'].replace('<em>', '').replace('</em>', ''),
                    data['SingerName'].replace('<em>', '').replace('</em>', ''),
                    data['AlbumName'].replace('<em>', '').replace('</em>', ''),
                    sec_to_str(data['Duration']),
-                   *[sign + data['FileHash'] + ',' + data['AlbumID']] * 3]
+                   *[pre + data['FileHash'] + ',' + data['AlbumID']] * 3]
                   for data in datas]
 
         return result
@@ -293,7 +293,14 @@ class EngineKugou:
         datas = EngineKugou.get_music_data(sign)
         music_url = datas['play_url']
 
-        return music_url
+        content = requests.get(music_url, timeout=1).content
+
+        file = f'app/cache/kugou-{sign}.mp3'
+
+        with open(file, 'wb') as f:
+            f.write(content)
+
+        return file
 
     @staticmethod
     @error_getter
@@ -301,14 +308,15 @@ class EngineKugou:
         datas = EngineKugou.get_music_data(sign)
         pic_url = datas['img']
 
-        pic_content = requests.get(pic_url).content
+        pic_content = requests.get(pic_url, timeout=1).content
 
         return pic_content
 
     @staticmethod
     @error_getter
     def get_music_content(url):
-        content = requests.get(url).content
+        with open(url, 'rb') as f:
+            content = f.read()
 
         return content
 
@@ -321,9 +329,9 @@ class EngineKugou:
         return format_lrc(lrc_str)
 
     @staticmethod
-    def get_music_data(data):
+    def get_music_data(sign):
         #data = sign.split(':')[1]
-        hash_, album_id = data.split(',')
+        hash_, album_id = sign.split(',')
 
         from_url = EngineKugou.from_url
         from_params = EngineKugou.from_params
@@ -335,10 +343,9 @@ class EngineKugou:
 
         return datas
 
-'''
 class EngineCloud(Base):
     name = '网易云音乐'
-    sign = 'cloud'
+    pre = 'cloud'
 
     url = 'http://www.lxytv.top/api.php?callback=jQuery1113020694660004537435_1646205326739'
     search_datas = {
@@ -385,7 +392,7 @@ class EngineCloud(Base):
     }
 
     @staticmethod
-    #@error_getter
+    @error_getter
     def search(kw: str):
         url = EngineCloud.url
         datas = EngineCloud.search_datas
@@ -394,21 +401,21 @@ class EngineCloud(Base):
         response = requests.post(url, data=datas).text
         datas = loads(match('.*?\((\[.*\])\)', response).group(1))
 
-        sign = EngineCloud.sign + ':'
+        pre = EngineCloud.pre + ':'
 
         result = [[data['name'],
                    ' '.join(data['artist']),
                    data['album'],
                    '',
-                   sign + data['pic_id'],
-                   sign + data['pic_id'],
-                   sign + str(data['id'])]
+                   pre + data['pic_id'],
+                   pre + data['pic_id'],
+                   pre + str(data['id'])]
                   for data in datas]
 
         return result
 
     @staticmethod
-    #@error_getter
+    @error_getter
     def get_music_url(id):
         url = EngineCloud.url
         datas = EngineCloud.from_datas
@@ -419,16 +426,23 @@ class EngineCloud(Base):
 
         content_url = datas['url']
 
-        return content_url
+        content = requests.get(content_url, timeout=1).content
+
+        file = f'app/cache/cloud-{id}.mp3'
+
+        with open(file, 'wb') as f:
+            f.write(content)
+
+        return file
 
     @staticmethod
-    #@error_getter
+    @error_getter
     def get_pic(id):
         url = EngineCloud.url
         datas = EngineCloud.pic_datas
         datas['id'] = id
 
-        response = requests.post(url, data=datas, timeout=0.1).text
+        response = requests.post(url, data=datas, timeout=1).text
         datas = loads(match('.*?\((.*)\)', response).group(1))
 
         pic_url = datas['url']
@@ -438,15 +452,15 @@ class EngineCloud(Base):
         return pic_content
 
     @staticmethod
-    #@error_getter
+    @error_getter
     def get_music_content(url):
-        #headers = EngineCloud.headers
-        content = requests.get(url).content
+        with open(url, 'rb') as f:
+            content = f.read()
 
         return content
 
     @staticmethod
-    #@error_getter
+    @error_getter
     def get_music_lrc(id):
         url = EngineCloud.url
         datas = EngineCloud.lrc_datas
@@ -460,7 +474,6 @@ class EngineCloud(Base):
         result = format_lrc(lrcs)
 
         return result
-'''
 
 def sec_to_str(sec):
     minute = sec // 60
@@ -487,12 +500,9 @@ def format_lrc(lrc_str: str):
 
     return sorted(result, key=lambda x: x[1])
 
-'''
-class EngineQQ:
-    name = 'QQ音乐'
-    sign = 'qq'
-
-class EngineCloud:
-    name = '网易云音乐'
-    sign = 'cloud'
-'''
+# 调试用
+if __name__ == '__main__':
+    datas = EngineCloud.search('孤勇者')[0][6].split(':')[1]
+    print(datas)
+    content = EngineCloud.get_music_url(datas)
+    print(content)
