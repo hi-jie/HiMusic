@@ -1,13 +1,13 @@
 <h1 align="center">Hi音乐</h1>
 
-<p align="center">两大平台全音乐搜索、收听与下载的简洁网络音乐播放器</p>
+<p align="center">三大平台全音乐搜索、收听与下载的简洁网络音乐播放器</p>
 
 <p align="center">
 <a href="./README.md">中文介绍</a> |
 <a href="./README_en.md">English Description</a> 
 </p>
 <p align="center">
-	<img src="https://img.shields.io/badge/HiMusic-v0.1.4-important.svg" title="HiMusic" />
+	<img src="https://img.shields.io/badge/HiMusic-v0.2.0-important.svg" title="HiMusic" />
 	<img src="https://img.shields.io/badge/Python-3.8+-blue.svg" title="Python" />
 	<img src="https://img.shields.io/badge/PyQt-5.0+-brightgreen.svg" title="PyQt5" />
 </p>
@@ -19,13 +19,13 @@
 
 ## 简介
 
-`Hi音乐` 是基于 `Python` 开发的简洁网络音乐播放器，支持酷狗音乐、酷我音乐两大平台全音乐搜索、收听与下载。如果你厌倦各种音乐软件繁多的广告和多余冗杂的设计，那么 `Hi音乐` 是你最佳的选择。
+`Hi音乐` 是基于 `Python` 开发的简洁网络音乐播放器，支持酷狗音乐、酷我音乐、网易云音乐三大平台全音乐搜索、收听与下载。如果你厌倦各种音乐软件繁多的广告和多余冗杂的设计，那么 `Hi音乐` 是你最佳的选择。
 
 ## 功能特性
 
 ### **基础功能**
 
-- 集成酷狗音乐、酷我音乐歌曲搜索与下载（未来将会支持更多的平台）
+- 集成酷狗音乐、酷我音乐、网易云音乐歌曲搜索与下载（未来将会支持更多的平台）
 
 - 歌词同步滚动与歌曲进度控制，舒适的听歌体验
 
@@ -61,7 +61,11 @@ pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 ### 2、运行
 
-#### 方法一
+直接双击运行 `run.pyw` 文件。
+
+如果双击运行闪退或打不开，请按照下述方法上传错误信息。
+
+#### 运行错误
 
 快捷键 `Win+R` 输入 `cmd` 回车打开命令行，输入以下命令运行：
 
@@ -69,9 +73,9 @@ pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 python -m run.pyw
 ```
 
-#### 方法二（推荐）
+如果未能运行成功且出现报错信息，请通过 Issue（[https://gitee.com/hi-jie/himusic/issues](https://gitee.com/hi-jie/himusic/issues)）告诉我。
 
-直接双击运行 `run.pyw` 文件。
+如果您知道如何解决该问题，也可自行修改并告诉我修改方法。
 
 ## 运行截图
 
