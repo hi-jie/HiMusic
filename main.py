@@ -321,9 +321,9 @@ class MainWindow(QMainWindow):
     def setup_engine(self):
         for index, engine in enumerate(helper.engines.values()):        
             self.ui.input_engine.addItem(engine.name, engine)       
-            self.ui.settings_default_engine.addItem(engine.name, engine.sign)
+            self.ui.settings_default_engine.addItem(engine.name, engine.pre)
 
-            if engine.sign == helper.default_engine.sign:
+            if engine.pre == helper.default_engine.pre:
                 self.ui.input_engine.setCurrentIndex(index)
                 self.ui.settings_default_engine.setCurrentIndex(index)
 
@@ -982,8 +982,8 @@ class MainWindow(QMainWindow):
 
     # 添加音乐
     def add_media(self, datas, local=False, play=False) -> int:  
-        # 爬取完音乐 URL       
-        def music_url_finished(url):
+        # 爬取完音乐 URL  
+        def music_url_finished(url):   
             if not url:
                 title = '错误'
                 warn = '获取歌曲出错，请重试。'
@@ -1101,7 +1101,7 @@ class MainWindow(QMainWindow):
         
         # 获取完大图
         def img_finished(pixmap):            
-            self.ui.big_image.setPixmap(pixmap)
+            self.ui.big_image.setPixmap(pixmap) # 歌词界面的歌曲封面大图
             
         # 获取完歌词
         def lrcs_finished(lrcs):
@@ -1121,6 +1121,11 @@ class MainWindow(QMainWindow):
             pixmap_getter = SubThread(task=SubThread.get_pixmap, data=pixmap)
             img_getter = SubThread(task=SubThread.get_img, data=bigimg)
             lrc_getter = SubThread(task=SubThread.get_lrcs, data=sign)
+
+        # 初始化
+        self.ui.mimage.setPixmap(QPixmap()) # 控制框小图片        
+        self.ui.big_image.setPixmap(QPixmap()) # 歌词界面的歌曲封面大图
+        self.insert_lrcbox([['无歌词', 0]])
 
         # 获取小图
         pixmap_getter.pixmap_finished.connect(pixmap_finished)
@@ -1391,8 +1396,6 @@ class SubThread(QThread):
         except:
             return
 
-        print(1)
-
         self.music_content_finished.emit(content)
 
 # 帮助
@@ -1455,8 +1458,8 @@ class CommonHelper:
         for s in dir(mapi):
             if s.startswith('Engine'):
                 engine = eval(f'mapi.{s}')
-                self.engines[engine.sign] = engine
-                if engine.sign == self.settings['general'].setdefault('default_engine', 'kuwo'):
+                self.engines[engine.pre] = engine
+                if engine.pre == self.settings['general'].setdefault('default_engine', 'kuwo'):
                     self.engine = engine
                     self.default_engine = engine
                     
