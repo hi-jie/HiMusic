@@ -1,5 +1,5 @@
 * {
-    font-family: "Microsoft Yahei";
+    font-family: "Microsoft Yahei", "Heiti SC";
     outline: 0px;
     font-size: 14px;
 }
@@ -298,6 +298,10 @@ QToolTip {
 #settings_contents QCheckBox:hover {
     border: 1px solid #777;
 }
+#settings_contents QCheckBox:checked {
+    border: none;
+    background-color: #2080f0 !important;
+}
 #settings_contents QCheckBox::indicator {
     height: 10px;
     width: 10px;
@@ -306,10 +310,6 @@ QToolTip {
     border: none;
     border-radius: 5px;
     background-color: #434343;
-}
-#settings_contents QCheckBox:checked {
-    border: none;
-    background-color: #2080f0 !important;
 }
 #settings_contents QCheckBox::indicator:checked {
     margin-left: 25px;
