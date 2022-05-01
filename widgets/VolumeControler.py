@@ -39,7 +39,7 @@ class QVolumeControler(QWidget):
         self.volume_mute.setMinimumSize(QSize(24, 24))
         self.volume_mute.setMaximumSize(QSize(24, 24))
         self.volume_mute.setProperty('is_toolbtn', True)
-        self.volume_mute.setIcon(qta.icon('fa.volume-up', color='#555'))
+        self.volume_mute.setIcon(qta.icon('fa.volume-up', color='#333'))
         self.volume_mute.setToolTip('静音')
         self.volume_mute.setObjectName("volume_mute")
         self.verticalLayout_8.addWidget(self.volume_mute)
@@ -88,7 +88,7 @@ class QVolumeControler(QWidget):
         if self.is_muted:
             icon = qta.icon(icon_name, 'fa.ban', options=[{'color': '#777'}, {'color': '#f33', 'offset': (0.15, 0.15), 'scale_factor': 0.8}])
         else:
-            icon = qta.icon(icon_name, color='#555')
+            icon = qta.icon(icon_name, color='#333')
         
         return icon
     

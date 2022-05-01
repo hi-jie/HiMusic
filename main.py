@@ -1,5 +1,5 @@
 import sys
-from os import walk
+from os import walk, system, getcwd, startfile
 from re import search, fullmatch, I
 from json import load, dump
 
@@ -10,11 +10,13 @@ from PyQt5.QtWidgets import (QApplication, QMainWindow, QLabel, QSlider,
                              QFileDialog, QMessageBox,
                              QSystemTrayIcon, QMenu, QAction, QWidgetAction,
                              QSizePolicy)
-from PyQt5.QtCore import (Qt, QSize, QPoint, QMetaObject, pyqtSignal, pyqtSlot, QThread, QUrl, QTimer, QDir)
+from PyQt5.QtCore import (Qt, QSize, QPoint, QMetaObject, pyqtSignal, pyqtSlot, QThread, QUrl, QTimer, QDir, QEvent, QSharedMemory)
 from PyQt5.QtGui import (QIcon, QFont, QImage, QPixmap, QPalette, QBrush)
 from PyQt5.QtMultimedia import (QMediaPlayer, QMediaPlaylist, QMediaContent)
+from PyQt5.QtWinExtras import (QWinThumbnailToolBar, QWinThumbnailToolButton)
 from PyQt5.Qt import QPropertyAnimation
 import qtawesome as qta
+from PIL import ImageQt, ImageFilter
 
 from widgets import ui_MainWindow, TrayIconWidget, VolumeControler
 from app import mapi
@@ -48,7 +50,7 @@ class MainWindow(QMainWindow):
 
     current_music_url = '' # 当前音乐网址
 
-    toolbtn_color = '#555' # 工具按钮的颜色
+    toolbtn_color = '#333' # 工具按钮的颜色
 
     play_modes = (('fa.circle-o', '播放一次'), 
                   ('fa.repeat', '单曲循环'), 
@@ -70,7 +72,8 @@ class MainWindow(QMainWindow):
         self.set_shadow() # 设置窗口阴影
 
         self.setup_system_tray() # 设置托盘图标
-        self.setup_volume_menu() # 设置音量菜单
+        self.setup_toolbar() # 设置任务栏缩略图工具按钮
+        self.setup_menus() # 设置音量菜单
         self.setup_ui() # 组件初始化
         self.setup_cache() # 设置缓存
         self.setup_settings() # 设置
@@ -100,7 +103,7 @@ class MainWindow(QMainWindow):
         self.ui.logo.setText('Hi 音乐')
         self.ui.logo.setFont(font)
         self.ui.sidebar.item(0).setText(chr(0xf015) + '      首页     ')
-        self.ui.sidebar.item(1).setText(chr(0xf002) + '   搜索结果 ')
+        self.ui.sidebar.item(1).setText(chr(0xf002) + '      搜索     ')
         self.ui.sidebar.item(2).setText(chr(0xf0db) + '      歌词     ')
         self.ui.sidebar.item(3).setText(chr(0xf08a) + '   我的收藏 ')
         self.ui.sidebar.item(4).setText(chr(0xf03a) + '   播放列表 ')
@@ -122,7 +125,7 @@ class MainWindow(QMainWindow):
         self.ui.last_song.setMinimumHeight(52)
         self.ui.last_song.setMaximumHeight(52)
 
-        color = '#555'
+        color = '#333'
         self.ui.last_song_play.setIcon(qta.icon('fa.play-circle-o', color=color))
         self.ui.last_playlist_addall.setIcon(qta.icon('fa.plus', color=color))
 
@@ -146,12 +149,16 @@ class MainWindow(QMainWindow):
         self.ui.mmode.setIcon(qta.icon(self.play_modes[1][0], color=color))
         self.menu_widget.menu_mode.setIcon(qta.icon(self.play_modes[1][0], color=color))
         self.ui.mdownload.setIcon(qta.icon('fa.download', color=color))
+        self.ui.mmv.setIcon(qta.icon('fa.caret-square-o-right', color=color))
         self.ui.mdetail.setIcon(qta.icon('fa.ellipsis-h', color=color))
         self.ui.mcollect.setIcon(qta.icon('fa.heart-o', color=color))
         self.ui.mvolume.setIcon(qta.icon('fa.volume-up', color=color))
         self.menu_widget.menu_volume.setIcon(qta.icon('fa.volume-up', color=color))
         self.ui.mplaylist.setIcon(qta.icon('fa.list-ul', color=color))
-        self.ui.settings.setIcon(qta.icon('fa.bars', color=color))
+        self.ui.more.setIcon(qta.icon('fa.bars', color=color))
+
+        self.ui.mmv.setVisible(False)
+        self.ui.mdetail.setVisible(False)
 
         # 小图片
         self.ui.mimage.setCursor(Qt.PointingHandCursor)
@@ -165,6 +172,12 @@ class MainWindow(QMainWindow):
         
         # 设置
         self.ui.settings_close_trayicon.setCursor(Qt.PointingHandCursor)
+
+        self.ui.settings_appicon.setPixmap(QPixmap('imgs/ico.ico'))
+
+        self.ui.settings_download_path_choose.setIcon(qta.icon('fa.folder-open-o', color=color))
+        self.ui.settings_download_cache_open.setIcon(qta.icon('fa.folder-open-o', color=color))
+        self.ui.settings_download_cache_clear.setIcon(qta.icon('fa.trash-o', color=color))
         
     # 设置缓存
     def setup_cache(self):  
@@ -245,6 +258,7 @@ class MainWindow(QMainWindow):
 
         self.ui.mpause.clicked.connect(self.change_player_state) # 界面点击播放/暂停
         self.menu_widget.menu_pause.clicked.connect(self.change_player_state) # 托盘点击播放/暂停
+        self.toolbar_pause.clicked.connect(self.change_player_state)
 
         self.ui.last_song_fold.clicked.connect(self.on_fold_clicked) # 收起/展开上次在听
         self.ui.last_playlist_fold.clicked.connect(self.on_fold_clicked) # 收起/展开上次播放列表
@@ -254,8 +268,10 @@ class MainWindow(QMainWindow):
 
         self.ui.mlast.clicked.connect(self.previous) # 界面点击上一曲
         self.menu_widget.menu_last.clicked.connect(self.previous) # 托盘点击上一曲
+        self.toolbar_last.clicked.connect(self.previous) # 任务栏缩略图工具栏点击上一曲
         self.ui.mnext.clicked.connect(self.next) # 界面点击下一曲
         self.menu_widget.menu_next.clicked.connect(self.next) # 托盘点击下一曲
+        self.toolbar_next.clicked.connect(self.next) # 任务栏缩略图工具栏点击下一曲
 
         self.ui.mmode.clicked.connect(self.change_playbackmode) # 界面点击播放模式
         self.menu_widget.menu_mode.clicked.connect(self.change_playbackmode) # 托盘点击播放模式
@@ -292,9 +308,13 @@ class MainWindow(QMainWindow):
         self.ui.main.mouseMoveEvent = self.on_main_mouseMoveEvent # 调整窗口大小
         self.ui.main.mouseReleaseEvent = self.on_main_mouseReleaseEvent # 窗口边缘松开
         
-        self.ui.logo.mousePressEvent = self.on_logo_mousePressEvent # logo 按下
-        self.ui.logo.mouseMoveEvent = self.on_logo_mouseMoveEvent  # logo 拖动
-        self.ui.logo.mouseReleaseEvent = self.on_logo_mouseReleaseEvent # logo 松开
+        self.ui.logo.mousePressEvent = self.on_title_mousePressEvent # logo 按下
+        self.ui.logo.mouseMoveEvent = self.on_title_mouseMoveEvent  # logo 拖动
+        self.ui.logo.mouseReleaseEvent = self.on_title_mouseReleaseEvent # logo 松开
+        
+        self.ui.title.mousePressEvent = self.on_title_mousePressEvent # title 按下
+        self.ui.title.mouseMoveEvent = self.on_title_mouseMoveEvent  # title 拖动
+        self.ui.title.mouseReleaseEvent = self.on_title_mouseReleaseEvent # title 松开
         
         self.ui.bar.mousePressEvent = self.on_bar_mousePressEvent # 进度条点击跳转
         
@@ -342,7 +362,7 @@ class MainWindow(QMainWindow):
         self.act_state = QWidgetAction(self.menu_widget)
         self.act_state.setDefaultWidget(self.menu_widget)
 
-        color = '#555'
+        color = '#333'
         self.act_open = QAction(qta.icon('fa.window-maximize', color=color), '打开', self)
         self.act_open.triggered.connect(self.showNormal)
         self.act_quit = QAction(qta.icon('fa.power-off', color='#f33'), '退出', self)
@@ -357,13 +377,40 @@ class MainWindow(QMainWindow):
         self.tray_icon = QSystemTrayIcon()
         self.tray_icon.setObjectName('tray_icon')
         self.tray_icon.setContextMenu(self.tray_icon_menu)
-        self.tray_icon.setIcon(QIcon('imgs/ico.ico'))#qta.icon('fa.music', color='#2080f0'))
-        self.tray_icon.setToolTip('Hi 音乐\n无歌曲')
+        self.tray_icon.setIcon(QIcon('imgs/ico.ico'))
+        self.tray_icon.setToolTip('Hi音乐\n无歌曲')
         self.tray_icon.activated.connect(self.on_tray_icon_activated)
         self.tray_icon.show()
 
-    # 设置音量菜单
-    def setup_volume_menu(self):
+    # 任务栏缩略图工具条
+    def setup_toolbar(self):
+        self.toolbar = QWinThumbnailToolBar(self)
+
+        color = 'white'
+
+        # 上一首，播放/暂停，下一首按钮
+        self.toolbar_last = QWinThumbnailToolButton(self.toolbar)
+        self.toolbar_last.setToolTip('上一首')
+        self.toolbar_last.setIcon(qta.icon('fa.step-backward', color=color))
+        # self.toolbar_last.clicked.connect(self.set_prev)
+        self.toolbar.addButton(self.toolbar_last)
+
+        self.toolbar_pause = QWinThumbnailToolButton(self.toolbar)
+        self.toolbar_pause.setToolTip('播放')
+        self.toolbar_pause.setProperty('status', 0)
+        self.toolbar_pause.setIcon(qta.icon('fa.play', color=color))
+        # self.toolbar_pause.clicked.connect(self.set_control)
+        self.toolbar.addButton(self.toolbar_pause)
+
+        self.toolbar_next = QWinThumbnailToolButton(self.toolbar)
+        self.toolbar_next.setToolTip('下一首')
+        self.toolbar_next.setIcon(qta.icon('fa.step-forward', color=color))
+        # self.toolbar_next.clicked.connect(self.set_next)
+        self.toolbar.addButton(self.toolbar_next)
+
+    # 设置菜单
+    def setup_menus(self):
+        # 音量菜单
         self.volume_widget = VolumeControler.QVolumeControler(self)
         self.volume_widget.setObjectName('volume_widget')
 
@@ -373,12 +420,20 @@ class MainWindow(QMainWindow):
         self.volume_menu = QMenu(self)
         self.volume_menu.addAction(self.act_volume)
 
+        # 标题栏“更多”菜单
+        color = '#333'
+        self.act_settings = QAction(qta.icon('fa.cog', color=color), '设置', self)
+        self.act_settings.triggered.connect(lambda: self.change_tab(5))
+
+        self.more_menu = QMenu(self)
+        self.more_menu.addAction(self.act_settings)
+
     # 设置定时器
     def setup_timer(self):
         self.timer = QTimer()
         self.timer.stop()
         self.timer.setInterval(400)
-        self.timer.timeout.connect(self.synchronize_lrcs)
+        self.timer.timeout.connect(self.synchronize_lrcs) # 连接歌词同步
 
     # 设置歌词滚动动画
     def setup_animation(self):
@@ -389,9 +444,11 @@ class MainWindow(QMainWindow):
 
     # 标题栏“更多”按钮
     @pyqtSlot()
-    def on_settings_clicked(self):
-        self.ui.sidebar.setCurrentRow(5)
-        self.ui.stacked_tab.setCurrentIndex(5)
+    def on_more_clicked(self):
+        pos = self.ui.main.mapToGlobal(self.ui.more.pos())
+        x = pos.x()
+        y = pos.y() + self.ui.more.height() + 5
+        self.more_menu.exec_(QPoint(x, y))
 
     # 关闭窗口
     @pyqtSlot()
@@ -417,6 +474,12 @@ class MainWindow(QMainWindow):
 ''')
             self.ui.main_frame.setStyleSheet('#main_frame {border-radius: 0;}')
             self.showMaximized() # 最大化
+
+    # 切换搜索引擎
+    @pyqtSlot(int)
+    def on_input_engine_currentIndexChanged(self, index):
+        engine = self.ui.input_engine.currentText()
+        self.ui.input_engine.setToolTip(engine)
             
     # 切换菜单
     @pyqtSlot(int)
@@ -598,6 +661,20 @@ class MainWindow(QMainWindow):
             table.setRowCount(table.rowCount() + 1)
             self.insert_songs_datas(table, data, table.rowCount() - 1)
 
+    # 打开缓存文件夹
+    @pyqtSlot()
+    def on_settings_download_cache_open_clicked(self):
+        system(f'explorer.exe "{getcwd()}\\datas\\cache\\"')
+
+    # 清除缓存
+    @pyqtSlot()
+    def on_settings_download_cache_clear_clicked(self):
+        commands = [
+            'cd datas/cache',
+            'del *.* /q'
+        ]
+        system('&&'.join(commands))
+
 
 # ======== 自定义槽函数 ========
 
@@ -633,7 +710,7 @@ class MainWindow(QMainWindow):
             self.showNormal()
 
             # 刷新界面
-            QApplication.processEvents()
+            # QApplication.processEvents()
         
     # 搜索
     def search(self):
@@ -706,6 +783,14 @@ class MainWindow(QMainWindow):
         if sender == self.ui.mcollect:
             if self.__playlist:
                 datas = [self.__playlist[self.playlist.currentIndex()][1]]
+                # 是否已收藏过
+                if datas[0][6] in collected:
+                    self.ui.collections_view.remove_item(collected.index(datas[0][6]))
+                    self.refresh_mcollect_status() # 刷新控制栏收藏按钮状态
+                    QMessageBox.warning(self, '已取消收藏', '已取消收藏！')
+
+                    return
+
             else:
                 QMessageBox.warning(self, '无歌曲', '当前无播放歌曲。')
                 return
@@ -723,6 +808,8 @@ class MainWindow(QMainWindow):
             collections_view.setRowCount(collections_view.rowCount() + 1)
             self.insert_songs_datas(collections_view, data, collections_view.rowCount() - 1)
             collections.append(f'{data[0]} - {data[1]}')
+                    
+        self.refresh_mcollect_status() # 刷新控制栏收藏按钮状态
 
         if collections:
             QMessageBox.information(self, '已收藏', '已收藏！\n' + '\n'.join(collections))
@@ -752,6 +839,7 @@ class MainWindow(QMainWindow):
 
     # 播放器状态变化
     def state_changed(self, state):
+        color = 'white'
         if state == QMediaPlayer.PlayingState:
             style_sheet = '''
 #mpause, #menu_pause {border-image: url("imgs/pause.svg");}
@@ -759,6 +847,7 @@ class MainWindow(QMainWindow):
 '''
             self.ui.mpause.setStyleSheet(style_sheet)
             self.menu_widget.menu_pause.setStyleSheet(style_sheet)
+            self.toolbar_pause.setIcon(qta.icon('fa.pause', color=color))
         else:
             style_sheet = '''
 #mpause, #menu_pause {border-image: url("imgs/play.svg");}
@@ -766,6 +855,7 @@ class MainWindow(QMainWindow):
 '''
             self.ui.mpause.setStyleSheet(style_sheet)
             self.menu_widget.menu_pause.setStyleSheet(style_sheet)
+            self.toolbar_pause.setIcon(qta.icon('fa.play', color=color))
 
     # 播放器进度变化
     def position_changed(self, position):
@@ -800,14 +890,24 @@ class MainWindow(QMainWindow):
     def on_fold_clicked(self):
         sender = self.sender()
         if sender.fold_widget.isVisible():
-            sender.setIcon(qta.icon('fa.angle-down', color='#555'))
+            sender.setIcon(qta.icon('fa.angle-down', color='#333'))
             sender.setToolTip('展开')
         else:
-            sender.setIcon(qta.icon('fa.angle-up', color='#555'))
+            sender.setIcon(qta.icon('fa.angle-up', color='#333'))
             sender.setToolTip('收起')
         sender.fold_widget.setVisible(not sender.fold_widget.isVisible())
 
 # ======== 组件事件 ========
+
+    def showEvent(self, event):
+        QMainWindow.showEvent(self, event)
+        if not self.toolbar.window():
+            # 必须等窗口显示后设置才有效，或者通过软件流程在适当的时候设置也可以
+            self.toolbar.setWindow(self.windowHandle())
+
+    #顶层窗口激活状态改变
+    def changeEvent(self, event):
+        self.repaint()
 
     # 窗口关闭事件
     def closeEvent(self, event):
@@ -845,7 +945,7 @@ class MainWindow(QMainWindow):
             self.__width = self.width()
             self.__height = self.height()
 
-            self.__is_resizing = (event.x() > self.ui.main.width() - 7) and (event.y() > self.ui.main.height() - 7)
+            self.__is_resizing = (event.x() > self.ui.main.width() - 10) and (event.y() > self.ui.main.height() - 10)
 
             self.__last_pos = event.pos()
 
@@ -868,8 +968,8 @@ class MainWindow(QMainWindow):
             self.__last_pos = QPoint(x, y)  
 
         else:
-            is_right = event.x() > self.ui.main.width() - 7
-            is_bottom = event.y() > self.ui.main.height() - 7
+            is_right = event.x() > self.ui.main.width() - 10
+            is_bottom = event.y() > self.ui.main.height() - 10
 
             # 光标样式
             if is_right and is_bottom: # 右下角
@@ -884,18 +984,18 @@ class MainWindow(QMainWindow):
         self.__is_resizing = False
         self.ui.main.setCursor(Qt.ArrowCursor)
     
-    # logo 按下
-    def on_logo_mousePressEvent(self, event):
+    # logo、title 按下
+    def on_title_mousePressEvent(self, event):
         self.__is_moving = True # 正在拖动
         self.__move_pos = event.globalPos() - self.pos() # 获取鼠标相对窗口的位置
 
-    # logo 拖动
-    def on_logo_mouseMoveEvent(self, event):
+    # logo、title 拖动
+    def on_title_mouseMoveEvent(self, event):
         if self.__is_moving and (not (self.isMaximized() or self.isFullScreen())):
             self.move(event.globalPos() - self.__move_pos) # 更改窗口位置
     
-    # logo 松开
-    def on_logo_mouseReleaseEvent(self, event):
+    # logo、title 松开
+    def on_title_mouseReleaseEvent(self, event):
         self.__is_moving = False # 结束
         
     # 点击进度条跳转
@@ -912,17 +1012,25 @@ class MainWindow(QMainWindow):
         self.ui.sidebar.setCurrentRow(2)
         self.ui.stacked_tab.setCurrentIndex(2)
         
-        # self.ui.side.setVisible(not self.ui.sidebar.isVisible())
+#         self.ui.side.setVisible(not self.ui.sidebar.isVisible())
             
-        # pixmap = self.ui.big_image.pixmap().scaled(self.ui.main_frame.size(), 
-        #                         Qt.KeepAspectRatioByExpanding, 
-        #                         Qt.SmoothTransformation)
+#         pixmap = self.ui.big_image.pixmap()
+
+#         image = ImageQt.fromqpixmap(pixmap)
+
+#         img_blur = image.filter(ImageFilter.GaussianBlur(radius=5))
+
+#         img_blur.save('datas/cache/cache-background.png')
         
-        # self.window_pale = QPalette() 
-        # self.window_pale.setBrush(QPalette.Background, 
-        #                             QBrush(pixmap)) 
-        # self.ui.main.setAutoFillBackground(True)
-        # self.ui.main.setPalette(self.window_pale)
+#         self.window_pale = QPalette() 
+#         self.window_pale.setBrush(QPalette.Background, 
+#                                     QBrush(pixmap)) 
+#         self.ui.main.setStyleSheet('''
+# #main {
+#     border-image: url(datas/cache/cache-background.png);
+# }
+# ''')
+        #self.ui.main.setPalette(self.window_pale)
         # self.setGraphicsEffect(self.effect_blur)
         # self.ui.main_frame.setGraphicsEffect(QGraphicsBlurEffect(self))
         
@@ -964,6 +1072,11 @@ class MainWindow(QMainWindow):
 
 # ======== 其他方法 ========
 
+    # 切换到指定界面
+    def change_tab(self, index):
+        self.ui.sidebar.setCurrentRow(index)
+        self.ui.stacked_tab.setCurrentIndex(index)
+
     # 弹出改变音量菜单
     def volume_controler_pop(self, pos):
         x = pos.x() - 10
@@ -984,12 +1097,17 @@ class MainWindow(QMainWindow):
     def add_media(self, datas, local=False, play=False) -> int:  
         # 爬取完音乐 URL  
         def music_url_finished(url):   
-            if not url:
+            if url == 'error:GetError':
                 title = '错误'
-                warn = '获取歌曲出错，请重试。'
+                warn = '获取歌曲出错，请检查你的网络或重试。'
                 QMessageBox.warning(self, title, warn)
+                return  
 
-                return
+            elif url == 'error:PaidError':
+                title = '付费'
+                warn = '付费歌曲，获取失败。'
+                QMessageBox.warning(self, title, warn)
+                return  
 
             content = QMediaContent(QUrl(url))
             sign = datas[6]
@@ -1146,9 +1264,30 @@ class MainWindow(QMainWindow):
         name_ = f'{name} - {artist}'
         self.ui.mname.setText(name_) # 托盘右键菜单歌曲名
         self.menu_widget.menu_name.setText(name_) # 控制框歌曲名
-        self.tray_icon.setToolTip('Hi 音乐\n' + name_) # 托盘 ToolTip歌曲名
+        self.tray_icon.setToolTip('Hi音乐\n' + name_) # 托盘 ToolTip歌曲名
+        self.setWindowTitle(name_) # 任务栏歌曲名
         self.ui.big_mname.setText(name) # 歌词界面歌曲名
         self.ui.big_martist.setText(artist) # 歌词界面歌手名
+
+        self.refresh_mcollect_status()
+
+    # 刷新收藏图标按钮状态
+    def refresh_mcollect_status(self):
+        collections_view = self.ui.collections_view
+        collected = []
+        color = self.toolbtn_color
+
+        for row in range(collections_view.rowCount()):
+            collected.append(collections_view.get_datas(row)[6])
+
+        datas = self.__playlist[self.playlist.currentIndex()][1]
+
+        if datas[6] in collected:
+            self.ui.mcollect.setIcon(qta.icon('fa.heart', color='#f33'))
+            self.ui.mcollect.setToolTip('已收藏')
+        else:
+            self.ui.mcollect.setIcon(qta.icon('fa.heart-o', color=color))
+            self.ui.mcollect.setToolTip('收藏')
 
     # 上一曲
     def previous(self):
@@ -1384,8 +1523,8 @@ class SubThread(QThread):
         engine, url = split_sign(data)
         try:
             music_url = helper.engines[engine].get_music_url(url)
-        except:
-            music_url = ''
+        except Exception as e:
+            music_url = 'error:' + str(e)
         
         self.music_url_finished.emit(music_url)
 
@@ -1429,9 +1568,9 @@ class CommonHelper:
     # 读取设置
     def read_settings(self):
         try:
-            settings = load(open('app/settings.json', 'r'))
+            settings = load(open('datas/settings.json', 'r'))
         except:
-            with open('app/settings.json', 'w') as f:
+            with open('datas/settings.json', 'w') as f:
                 f.write('{}')
             settings = {}
         settings.setdefault('general', {})
@@ -1442,9 +1581,9 @@ class CommonHelper:
     # 读取缓存
     def read_cache(self):
         try:
-            cache = load(open('app/cache.json', 'r'))
+            cache = load(open('datas/cache.json', 'r'))
         except:
-            with open('app/cache.json', 'w') as f:
+            with open('datas/cache.json', 'w') as f:
                 f.write('{}')
             cache = {}
         cache.setdefault('last_song', [])
@@ -1465,11 +1604,11 @@ class CommonHelper:
                     
     # 保存设置
     def save_settings(self):
-        dump(self.settings, open('app/settings.json', 'w'), indent=4)
+        dump(self.settings, open('datas/settings.json', 'w'), indent=4)
         
     # 保存缓存
     def save_cache(self):
-        dump(self.cache, open('app/cache.json', 'w'), indent=4)
+        dump(self.cache, open('datas/cache.json', 'w'), indent=4)
 
 # 分离sign
 def split_sign(sign):
@@ -1545,12 +1684,28 @@ def find_lrc_img_in_path(url, mode='lrcimg'):
 
     return img_file, lrc_file
 
+def is_memory_attach(key):
+    global share
+    
+    share = QSharedMemory()
+    share.setKey(key)
+
+    if share.attach():
+        QMessageBox.warning(None, '程序已在运行', '程序已在运行，请关闭后重试。')
+        return True
+    else:
+        share.create(1)
+        return False
+
 def main():
     global app, window, helper
 
     helper = CommonHelper()
 
-    app = QApplication(sys.argv)   
+    app = QApplication(sys.argv) 
+
+    if is_memory_attach('HiMusic'):
+        return  
     
     window = MainWindow()
 

@@ -2,7 +2,10 @@
 	border-radius: 3px;
 }
 [is_toolbtn=true]:hover {
-	background-color: #ddd;
+	background-color: #dcdcdc;/*rgba(0, 0, 0, 0.15)*/
+}
+[is_toolbtn=true]:pressed {
+	background-color: #ccc;/*rgba(0, 0, 0, 0.2)*/
 }
 [is_editbtn=true] {
 	font-size: 12px;
@@ -11,7 +14,7 @@
     background-color: #f7f8f8;
 }
 [is_editbtn=true]:hover {
-    background-color: #e5e5e5;
+    background-color: #e8e8e8;
 }
 [is_editbtn=true]:pressed {
     background-color: #ddd;

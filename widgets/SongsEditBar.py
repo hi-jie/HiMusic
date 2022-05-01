@@ -44,7 +44,7 @@ class QSongsEditBar(QWidget):
         self.downmove.setText("下移")
         self.from_local.setText("本地歌曲")
 
-        color = '#555'
+        color = '#333'
         self.remove.setIcon(qta.icon('fa.trash-o', color=color))
         self.upmove.setIcon(qta.icon('fa.angle-double-up', color=color))
         self.downmove.setIcon(qta.icon('fa.angle-double-down', color=color))

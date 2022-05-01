@@ -1,0 +1,50 @@
+body {
+	background-image: url(https://imgcache.gtimg.cn/mediastyle/app/download/img/index/bg_like.jpg?max_age=2592000&v=9c49432b5307f2ef106755e1fb2ec2f0);
+	background-size: cover;
+}
+img {
+	box-shadow: 0 0 10px black;
+	border-radius: 3px;
+}
+.home-tab, .list {
+	display: flex;
+}
+.home-img {
+	margin-left: 60px;
+	margin-top: 130px;
+}
+.home-img2 {
+	position: absolute;
+	width: 477.6px;/*
+	margin-left: 430px;
+	margin-top: -200px;*/
+	left: 430px;
+	top: 370px;
+}
+.intro {
+	margin-top: 170px;
+	margin-left: 120px;
+}
+.intro * {
+	font-family: Tahoma,\5FAE\8F6F\96C5\9ED1,"hiragino sans gb",Helvetica,Arial;
+	color: white;
+}
+.intro h1 {
+	font-weight: normal;
+	font-size: 56px;
+}
+.intro p {
+	font-family: "华文细黑";
+	line-height: 1.5;
+	font-size: 26px;
+}
+.intro ul {
+	list-style-type: circle;
+}
+.intro ul li {
+	font-size: 24px;
+}
+.list ul {
+	margin-left: -10px;
+	margin-right: 20px;
+}

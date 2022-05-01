@@ -11,17 +11,16 @@
 
 /*下拉框*/
 QComboBox QAbstractItemView {
-    border: 1px solid #dddddd;
+    border: 1px solid #ddd;
 }
 QComboBox QAbstractItemView::item {
-    color: #333333;
+    color: #333;
     height: 30px;
-    text-indent: 5;
     /*padding-left: 8px;*/
 }
 QComboBox QAbstractItemView::item:selected {
     color: black;
-    background-color: #d9d9d9;
+    background-color: #ddd;
 }
 QComboBox::drop-down {
     border: none;
@@ -93,7 +92,7 @@ QScrollBar, QScrollBar::add-page, QScrollBar::sub-page {
 /*菜单*/
 QMenu {
     border: 1px solid #ccc;
-    padding: 5px 1px;
+    padding: 1px 0;
     background-color: white;
 }
 QMenu::icon {
@@ -101,17 +100,20 @@ QMenu::icon {
 }
 QMenu::item {
     padding: 5px 20px;
+    margin: 0 1px;
     color: black;
 }
 QMenu::item:selected {
     color: black;
-    background-color: #dddddd;
+    background-color: #ddd;
 }
 QMenu::item:pressed {
     background-color: #c9c9c9;
 }
 QMenu::separator {
-    padding: 5px 0;
+    margin: 1px 0;
+    background-color: #ccc;
+    height: 1px;
 }
 
 /*提示*/
@@ -119,9 +121,32 @@ QToolTip {
     font-size: 12px;
 }
 
+/*分页框*/
+QTabWidget::pane {
+    border: none;
+    border-top: 1px solid #ddd;
+}
+QTabWidget QTabBar {
+
+}
+QTabWidget QTabBar::tab {
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: 8px;
+    font-size: 16px;
+}
+QTabWidget QTabBar::tab:hover:!selected {
+    border-bottom: 2px solid #ccc;
+}
+QTabWidget QTabBar::tab:selected {
+    color: #2080f0;
+    padding: 8px;
+    border-bottom: 2px solid #2080f0;
+}
+
 #main_frame {
     border-radius: 3px;
-    background-color: #f5f6f6;
+    background-color: #f7f7f7;
 }
 
 /*菜单栏*/
@@ -146,6 +171,7 @@ QToolTip {
     background-color: #2080f0;
 }
 #logo {
+    /*image: url(imgs/logo.png);*/
     color: #2080f0;
     border-top-left-radius: 3px;
     font-size: 20px;
@@ -218,7 +244,7 @@ QToolTip {
 }
 
 /*首页*/
-#home_tab>QLabel {
+#home_tab > QLabel {
     font-size: 20px;
     font-weight: bold;
 }
@@ -248,17 +274,19 @@ QToolTip {
 /*见 qss/buttons,qss [is_editbtn=true]
 
 /*设置页*/
-#settings_contents, #settings_area {
+#settings_contents QScrollArea,
+#settings_contents QScrollArea .QWidget {
+    border: none;
     background-color: transparent;
-}
-#settings_contents > QLabel {
+}/*
+#settings_contents QScrollArea .QWidget > QLabel {
     border: 1px solid #ddd;
     border-width: 0 0 1px 0;
     padding-bottom: 9px;
     font-size: 20px;
     font-weight: bold;
-}
-#settings_contents QWidget .QWidget {
+}*/
+#settings_contents QScrollArea .QWidget .QWidget {
     border-bottom: 1px solid #ddd;
 }
 #settings_contents QWidget QLabel {
@@ -320,6 +348,7 @@ QToolTip {
 /*系统托盘菜单*/
 #menu_widget QLabel {
     font-size: 14px;
+    padding-top: 5px;
 }
 
 /*音量控制*/

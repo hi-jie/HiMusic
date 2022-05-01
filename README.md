@@ -1,3 +1,5 @@
+![封面](imgs/readme-pic.png)
+
 <h1 align="center">Hi音乐</h1>
 
 <p align="center">三大平台全音乐搜索、收听与下载的简洁网络音乐播放器</p>
@@ -7,7 +9,7 @@
 <a href="./README_en.md">English Description</a> 
 </p>
 <p align="center">
-	<img src="https://img.shields.io/badge/HiMusic-v0.2.0-important.svg" title="HiMusic" />
+	<img src="https://img.shields.io/badge/HiMusic-v0.3.0-important.svg" title="HiMusic" />
 	<img src="https://img.shields.io/badge/Python-3.8+-blue.svg" title="Python" />
 	<img src="https://img.shields.io/badge/PyQt-5.0+-brightgreen.svg" title="PyQt5" />
 </p>
@@ -45,7 +47,11 @@
 
 ### 1、安装依赖库
 
-#### 方法一
+#### 方法一（推荐）
+
+直接运行文件夹下 `requirements.bat` 批处理文件自动安装依赖库。
+
+#### 方法二
 
 快捷键 `Win+R`，输入 `cmd` 回车打开命令行，运行 `pip` 安装命令。
 
@@ -55,15 +61,11 @@
 pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 
-#### 方法二（推荐）
-
-直接运行文件夹下 `requirements.bat` 批处理文件自动安装依赖库。
-
 ### 2、运行
 
 直接双击运行 `run.pyw` 文件。
 
-如果双击运行闪退或打不开，请按照下述方法上传错误信息。
+如果双击运行闪退或打不开，请按照下述方法尝试。
 
 #### 运行错误
 

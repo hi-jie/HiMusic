@@ -60,7 +60,7 @@ class QSongsTableWidget(QTableWidget):
 
     # 设置菜单
     def setup_rightbutton_actions(self):
-        color = '#555'
+        color = '#333'
 
         self.rightclick_menu = QMenu(self)
 

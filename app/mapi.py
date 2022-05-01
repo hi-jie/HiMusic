@@ -9,14 +9,14 @@ def error_getter(func):
             try:
                 result = func(*arg, **args)
             except GetError.PaidError:
-                raise GetError.PaidError('付费歌曲，请重试。')
+                raise GetError.PaidError('PaidError')
             except:
                 continue
             else:
                 break
                 
         if not result:
-            raise GetError.GetError('获取出错，请重试。')
+            raise GetError.GetError('GetError')
 
         return result
 
@@ -141,7 +141,7 @@ class EngineKuwo(Base):
         if data['success']:
             url = data['data']['url']
         elif '付费' in data['msg']:
-            raise GetError.PaidError('付费歌曲。')
+            raise GetError.PaidError('PaidError')
 
         return url
 
@@ -295,7 +295,7 @@ class EngineKugou:
 
         content = requests.get(music_url, timeout=1).content
 
-        file = f'app/cache/kugou-{sign}.mp3'
+        file = f'datas/cache/kugou-{sign}.mp3'
 
         with open(file, 'wb') as f:
             f.write(content)
@@ -428,7 +428,7 @@ class EngineCloud(Base):
 
         content = requests.get(content_url, timeout=1).content
 
-        file = f'app/cache/cloud-{id}.mp3'
+        file = f'datas/cache/cloud-{id}.mp3'
 
         with open(file, 'wb') as f:
             f.write(content)
