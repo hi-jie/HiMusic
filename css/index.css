@@ -55,7 +55,7 @@ body {
 	cursor: pointer;
 }
 .head:hover {
-	background-color: rgba(150, 150, 150, 0.3);
+	background-color: rgba(150, 150, 150, 0.5);
 	width: 160px;
 }
 .head:hover img {
@@ -116,8 +116,8 @@ body {
 .intro a:hover {
 	color: white;
 	padding-right: 60px;
-	background-color: #2080f0;
-	border-color: #2080f0;
+	background-color: rgba(150, 150, 150, 0.5);
+	border-color: rgba(150, 150, 150, 0.5);
 }
 .intro a svg {
 	vertical-align: middle;
@@ -125,7 +125,6 @@ body {
 .intro .github {
 	border-right: 1px solid rgba(150, 150, 150, 0.7);
 	border-radius: 20px 0 0 20px;
-	padding-right: 10px;
 }
 .intro .gitee {
 	border-radius: 0 20px 20px 0;
