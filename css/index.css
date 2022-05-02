@@ -1,0 +1,132 @@
+﻿body {
+    background-color: #f7f7f7;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+* {
+	font-family: "微软雅黑";
+}
+li {	
+	margin: 10px;
+	margin-left: -25px;
+}
+a {
+	text-decoration: none;
+}
+
+h2 {
+	font-weight: normal;
+	margin: 0;
+}
+body {
+	background-image: url(https://imgcache.gtimg.cn/mediastyle/app/download/img/index/bg_like.jpg?max_age=2592000&v=9c49432b5307f2ef106755e1fb2ec2f0);
+	background-size: cover;
+}
+.home-tab img {
+	box-shadow: 0 0 10px black;
+	border-radius: 3px;
+}
+.home-tab, .list {
+	display: flex;
+}
+.home-img {
+	margin-left: 60px;
+	margin-top: 130px;
+}
+.home-img2 {
+	position: absolute;
+	width: 477.6px;/*
+	margin-left: 430px;
+	margin-top: -200px;*/
+	left: 430px;
+	top: 370px;
+}
+.head {
+	color: white;
+	position: absolute;
+	left: 20px;
+	top: 20px;
+	border-radius: 25px;
+	height: 50px;
+	width: 50px;
+	transition: width .3s;
+	overflow: hidden;
+	cursor: pointer;
+}
+.head:hover {
+	background-color: rgba(150, 150, 150, 0.3);
+	width: 160px;
+}
+.head:hover img {
+	display: none;
+}
+.head:hover svg {
+	display: inline;
+}
+.head span {
+	padding-left: 10px;
+}
+.head img {
+	margin: 0;
+	vertical-align: middle;
+	border-radius: 50% !important;
+}
+.head svg {
+	display: none;
+	padding: 15px;
+	vertical-align: middle;
+}
+.intro {
+	margin-top: 170px;
+	margin-left: 120px;
+}
+.intro * {
+	font-family: Tahoma,"微软雅黑","hiragino sans gb",Helvetica,Arial;
+	color: white;
+}
+.intro h1 {
+	font-weight: normal;
+	font-size: 56px;
+}
+.intro p {
+	font-family: "华文细黑";
+	line-height: 1.5;
+	font-size: 26px;
+}
+.intro ul {
+	list-style-type: circle;
+}
+.intro ul li {
+	font-size: 24px;
+}
+.list ul {
+	margin-left: -10px;
+	margin-right: 20px;
+}
+.intro a {
+	color: white;
+	padding: 10px 20px;
+	margin: 0;
+	border: 0;
+	background-color: rgba(150, 150, 150, 0.3);
+	transition: padding-right .3s;
+	vertical-align: middle;
+}
+.intro a:hover {
+	color: white;
+	padding-right: 60px;
+	background-color: #2080f0;
+	border-color: #2080f0;
+}
+.intro a svg {
+	vertical-align: middle;
+}
+.intro .github {
+	border-right: 1px solid rgba(150, 150, 150, 0.7);
+	border-radius: 20px 0 0 20px;
+	padding-right: 10px;
+}
+.intro .gitee {
+	border-radius: 0 20px 20px 0;
+}
