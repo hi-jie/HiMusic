@@ -78,8 +78,7 @@ body {
 	vertical-align: middle;
 }
 .intro {
-	margin-top: 170px;
-	margin-left: 120px;
+	margin: 150px 110px;
 }
 .intro * {
 	font-family: Tahoma,"微软雅黑","hiragino sans gb",Helvetica,Arial;
@@ -128,4 +127,9 @@ body {
 }
 .intro .gitee {
 	border-radius: 0 20px 20px 0;
+}
+@media screen and (max-width: 1000px) {
+	.home-tab {
+		flex-direction: column;
+	}
 }
