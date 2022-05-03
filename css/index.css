@@ -115,11 +115,11 @@ body {
 .intro a svg {
 	vertical-align: middle;
 }
-.intro .github {
+.intro .download {
 	border-right: 1px solid rgba(150, 150, 150, 0.7);
 	border-radius: 20px 0 0 20px;
 }
-.intro .gitee {
+.intro .docs {
 	border-radius: 0 20px 20px 0;
 }
 @media screen and (max-width: 1000px) {
