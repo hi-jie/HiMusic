@@ -53,6 +53,7 @@ body {
 	transition: width .3s;
 	overflow: hidden;
 	cursor: pointer;
+	line-height: 50px;
 }
 .head:hover {
 	background-color: rgba(150, 150, 150, 0.5);
@@ -61,7 +62,7 @@ body {
 .head:hover img {
 	display: none;
 }
-.head:hover svg {
+.head:hover i {
 	display: inline;
 }
 .head span {
@@ -69,12 +70,12 @@ body {
 }
 .head img {
 	margin: 0;
-	vertical-align: middle;
 	border-radius: 50% !important;
+	vertical-align: middle;
 }
-.head svg {
+.head i {
 	display: none;
-	padding: 15px;
+	padding-left: 20px;
 	vertical-align: middle;
 }
 .intro {
@@ -104,6 +105,7 @@ body {
 	margin-right: 20px;
 }
 .intro a {
+	display: inline-block;
 	color: white;
 	padding: 10px 20px;
 	margin: 0;
