@@ -79,7 +79,7 @@ body {
 	vertical-align: middle;
 }
 .intro {
-	margin: 150px 100px;
+	margin: 120px 100px;
 }
 .intro * {
 	font-family: Tahoma,"微软雅黑","hiragino sans gb",Helvetica,Arial;
@@ -93,16 +93,7 @@ body {
 	font-family: "华文细黑";
 	line-height: 1.5;
 	font-size: 26px;
-}
-.intro ul {
-	list-style-type: circle;
-}
-.intro ul li {
-	font-size: 24px;
-}
-.list ul {
-	margin-left: -10px;
-	margin-right: 20px;
+	margin-bottom: 0;
 }
 .intro a {
 	display: inline-block;
@@ -113,6 +104,7 @@ body {
 	background-color: rgba(150, 150, 150, 0.3);
 	transition: padding-right .3s;
 	vertical-align: middle;
+	margin-bottom: 20px;
 }
 .intro a:hover {
 	color: white;
