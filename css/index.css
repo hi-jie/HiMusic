@@ -122,6 +122,7 @@ body {
 .intro .docs {
 	border-radius: 0 20px 20px 0;
 }
+
 @media screen and (max-width: 1000px) {
 	.home-tab {
 		flex-direction: column;
